@@ -1,9 +1,9 @@
 /*
  * Class: CS-330-T5621 Computer Graphics and Visualization
  * Instructor: Malcolm Wabara, M.S
- * Assignment: 3-5 Milestone: Beginning a 3D Scene
+ * Assignment: 4-5 Milestone: Interactivity in a 3D Scene
  * Student: Preston Burkhardt
- * Date: 21 May 2022
+ * Date: 29 May 2022
  */
 
 #include <glad/glad.h>
@@ -34,7 +34,7 @@ GLuint gProgramID;
 // constants for windown attributes
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
-const char* const WINDOW_TITLE = "3-5 Milestone: Beginning a 3D Scene";
+const char* const WINDOW_TITLE = "4-5 Milestone: Interactivity in a 3D Scene";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 45.0f;
 float ROTATE_X = 1.0f;
