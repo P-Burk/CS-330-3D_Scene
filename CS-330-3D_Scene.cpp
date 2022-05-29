@@ -1,9 +1,9 @@
 /*
  * Class: CS-330-T5621 Computer Graphics and Visualization
  * Instructor: Malcolm Wabara, M.S
- * Assignment: 3-5 Milestone: Beginning a 3D Scene
+ * Assignment: 4-5 Milestone: Interactivity in a 3D Scene
  * Student: Preston Burkhardt
- * Date: 21 May 2022
+ * Date: 29 May 2022
  */
 
 #include <glad/glad.h>
@@ -15,6 +15,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "Camera.h"
 
 using namespace std;
 
@@ -34,12 +36,20 @@ GLuint gProgramID;
 // constants for windown attributes
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
-const char* const WINDOW_TITLE = "3-5 Milestone: Beginning a 3D Scene";
-const bool WIREFRAME_MODE = false;
+const char* const WINDOW_TITLE = "4-5 Milestone: Interactivity in a 3D Scene";
+const bool WIREFRAME_MODE = true;
 float ROTATE_DEG = 45.0f;
 float ROTATE_X = 1.0f;
 float ROTATE_Y = 1.0f;
 float ROTATE_Z = 1.0f;
+
+// camera and timing
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = WINDOW_WIDTH / 2.0f;
+float lastY = WINDOW_HEIGHT / 2.0f;
+bool firstMouse = true;
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -52,6 +62,9 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
 void destoryMesh(GLMesh& mesh);
 bool createShaderProgram(const char* vtxShaderSource, const char* fragShaderSource, GLuint& programId);
 void destroyShaderProgram(GLuint programID);
+void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
+void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
+void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset);
 
 
 // vertex shader source code
@@ -81,7 +94,7 @@ const char* fragmentShaderSource = "#version 440 core\n"
 
 
 int main() {
-    cout << "Hello World!\n";
+    cout << WINDOW_TITLE << endl;
 
     // initialize GLFW and specify versions + profile to be used
     glfwInit();
@@ -104,6 +117,10 @@ int main() {
     // generate window
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    // camera control calls
+    glfwSetCursorPosCallback(window, mouseCameraMovement);
+    glfwSetScrollCallback(window, scrollCameraSpeed);
+
     // loads GLAD
     // needed for OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -120,13 +137,20 @@ int main() {
 
     // while loop to continually render until user closes window
     while (!glfwWindowShouldClose(window)) {
+
         // enable z-depth buffer
         glEnable(GL_DEPTH_TEST);
         // clear the background frame and z-depth buffer
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // frame timing
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         processInput(window);                       // process input
+
         //renderMesh(gMesh, gProgramID, window, WIREFRAME_MODE);      // render the frame
         renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE);
         renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE);
@@ -136,7 +160,9 @@ int main() {
     }
 
 
-    // exit code
+    // EXIT CODE /////////////////////////////////////////////
+    destoryMesh(gMesh);
+    destroyShaderProgram(gProgramID);
     glfwTerminate();
     return 0;
 }
@@ -148,9 +174,26 @@ void framebuffer_size_callback(GLFWwindow* window, int passedWidth, int passedHe
 
 // processes user input
 // closes the OpenGL window when ESC is pressed
+// use WASD for camera movement, Q E for up and down
 void processInput(GLFWwindow* window) {
+
+    // close window
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    // camera movement
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        camera.ProcessKeyboard(UP, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        camera.ProcessKeyboard(DOWN, deltaTime);
 }
 
 // creates the mesh for a shape
@@ -520,11 +563,12 @@ void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, co
     glm::mat4 model = rotation * scale * translation;
 
     // Transforms the camera: move the camera back (Z axis)
-    glm::mat4 view = glm::translate(glm::vec3(0.0f, 0.0f, -3.0f));
+    //glm::mat4 view = glm::translate(glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 view = camera.GetViewMatrix();
 
     // Projection MAtrix
-    //glm::mat4 projection = glm::perspective(45.0f, (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    //glm::mat4 projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
 
     // retrieves and passes transformation matrices to shader program
     GLint modelLoc = glGetUniformLocation(programID, "model");
@@ -589,11 +633,12 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     glm::mat4 model = scale * rotation * translation;
 
     // Transforms the camera: move the camera back (Z axis)
-    glm::mat4 view = glm::translate(glm::vec3(0.0f, 0.0f, -3.0f));
+    //glm::mat4 view = glm::translate(glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 view = camera.GetViewMatrix();
 
     // Projection MAtrix
-    //glm::mat4 projection = glm::perspective(45.0f, (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    //glm::mat4 projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
 
     // retrieves and passes transformation matrices to shader program
     GLint modelLoc = glGetUniformLocation(programID, "model");
@@ -692,4 +737,29 @@ bool createShaderProgram(const char* vtxShaderSource, const char* fragShaderSour
 // clears the shader program
 void destroyShaderProgram(GLuint programID) {
     glDeleteProgram(programID);
+}
+
+void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos) {
+    if (firstMouse == true) {
+        lastX = xPos;
+        lastY = yPos;
+        firstMouse = false;
+    }
+
+    float xPosOffest = xPos - lastX;
+    float yPosOffset = lastY - yPos;
+    lastX = xPos;
+    lastY = yPos;
+
+    camera.ProcessMouseMovement(xPosOffest, yPosOffset);
+}
+
+// Use the scroll wheel for camera ZOOM //////////////////////////////////////////
+void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset) {
+    camera.ProcessMouseScroll(yPosOffset);
+}
+
+// Use the scroll wheel for adjusting camera SPEED //////////////////////////////
+void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset) {
+    camera.ProcessMouseScroll_Speed(yPosOffset);
 }
