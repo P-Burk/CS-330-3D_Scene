@@ -69,7 +69,6 @@ void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
 void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset);
-void perspectiveToggle(bool& perspectiveBool) { perspectiveBool = !perspectiveBool; };
 void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 
