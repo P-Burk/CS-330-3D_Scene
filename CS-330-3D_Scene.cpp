@@ -8,6 +8,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <gl/GL.h>
 #include <iostream>
 #include <vector>
 
@@ -51,20 +52,25 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
+// perspective switch
+bool perspectiveSwitch = true;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void createMesh(GLMesh& mesh);
 void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen);
 void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen);
 void renderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE);
-void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE);
-void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE);
+void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
+void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
 void destoryMesh(GLMesh& mesh);
 bool createShaderProgram(const char* vtxShaderSource, const char* fragShaderSource, GLuint& programId);
 void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
 void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset);
+void perspectiveToggle(bool& perspectiveBool) { perspectiveBool = !perspectiveBool; };
+void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 
 // vertex shader source code
@@ -152,8 +158,8 @@ int main() {
         processInput(window);                       // process input
 
         //renderMesh(gMesh, gProgramID, window, WIREFRAME_MODE);      // render the frame
-        renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE);
-        renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE);
+        renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
         glfwPollEvents();
@@ -170,6 +176,7 @@ int main() {
 // function used for window resizing
 void framebuffer_size_callback(GLFWwindow* window, int passedWidth, int passedHeight) {
     glViewport(0, 0, passedWidth, passedHeight);
+
 }
 
 // processes user input
@@ -194,6 +201,9 @@ void processInput(GLFWwindow* window) {
         camera.ProcessKeyboard(UP, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         camera.ProcessKeyboard(DOWN, deltaTime);
+    
+    // perspective switch
+    glfwSetKeyCallback(window, perspectiveToggle);
 }
 
 // creates the mesh for a shape
@@ -535,7 +545,7 @@ void renderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const 
 }
 
 // render the cube
-void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE) {
+void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective) {
     /*
     //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
     // enable z-depth buffer
@@ -567,8 +577,14 @@ void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, co
     glm::mat4 view = camera.GetViewMatrix();
 
     // Projection MAtrix
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
-    //glm::mat4 projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 projection;
+    if (perspective) {
+        projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    }
+    else {
+        projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    }
 
     // retrieves and passes transformation matrices to shader program
     GLint modelLoc = glGetUniformLocation(programID, "model");
@@ -607,7 +623,7 @@ void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, co
 }
 
 // render the cylinder
-void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE) {
+void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective) {
     /*
     //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
     // enable z-depth buffer
@@ -637,8 +653,14 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     glm::mat4 view = camera.GetViewMatrix();
 
     // Projection MAtrix
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
-    //glm::mat4 projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 projection;
+    if (perspective) {
+        projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    }
+    else {
+        projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    }
 
     // retrieves and passes transformation matrices to shader program
     GLint modelLoc = glGetUniformLocation(programID, "model");
@@ -762,4 +784,10 @@ void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffs
 // Use the scroll wheel for adjusting camera SPEED //////////////////////////////
 void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset) {
     camera.ProcessMouseScroll_Speed(yPosOffset);
+}
+
+void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_P && action == GLFW_PRESS)
+        perspectiveSwitch = !perspectiveSwitch;
 }

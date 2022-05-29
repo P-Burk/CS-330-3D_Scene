@@ -135,6 +135,9 @@
     <ClCompile Include="CS-330-3D_Scene.cpp" />
     <ClCompile Include="glad.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\CS-330-3D_Pyramid\Camera.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
