@@ -1,4 +1,0 @@
-﻿  CS-330-3D_Scene.cpp
-C:\Users\prest\Desktop\College Programing\CS-330-Comp-Graphic-and-Visualization\CS-330-3D_Scene\CS-330-3D_Scene.cpp(211,25): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\prest\Desktop\College Programing\CS-330-Comp-Graphic-and-Visualization\CS-330-3D_Scene\CS-330-3D_Scene.cpp(286,25): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-  CS-330-3D_Scene.vcxproj -> C:\Users\prest\Desktop\College Programing\CS-330-Comp-Graphic-and-Visualization\CS-330-3D_Scene\Debug\CS-330-3D_Scene.exe
