@@ -7,9 +7,7 @@
  */
 
 #include <GL/glew.h>
-//#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-//#include <gl/GL.h>
 #include <iostream>
 #include <vector>
 
@@ -33,14 +31,15 @@ struct GLMesh {
 GLMesh gMesh;
 GLMesh cubeMesh;
 GLMesh cylinderMesh;
+GLMesh planeMesh;
 GLuint gProgramID;
 
 // constants for windown attributes
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const char* const WINDOW_TITLE = "4-5 Milestone: Interactivity in a 3D Scene";
-const bool WIREFRAME_MODE = true;
-float ROTATE_DEG = 45.0f;
+const bool WIREFRAME_MODE = false;
+float ROTATE_DEG = 0.0f;
 float ROTATE_X = 1.0f;
 float ROTATE_Y = 1.0f;
 float ROTATE_Z = 1.0f;
@@ -61,9 +60,11 @@ void processInput(GLFWwindow* window);
 void createMesh(GLMesh& mesh);
 void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen);
 void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen);
+void createPlaneMesh(GLMesh& mesh);
 void renderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE);
 void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
 void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
+void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
 void destoryMesh(GLMesh& mesh);
 bool createShaderProgram(const char* vtxShaderSource, const char* fragShaderSource, GLuint& programId);
 void destroyShaderProgram(GLuint programID);
@@ -118,9 +119,12 @@ int main() {
 
     // sets window object as main context on current thread
     glfwMakeContextCurrent(window);
-
     // generate window
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // camera control calls
+    glfwSetCursorPosCallback(window, mouseCameraMovement);
+    glfwSetScrollCallback(window, scrollCameraSpeed);
+
 
     // GLEW: initialize
     // ----------------
@@ -134,22 +138,12 @@ int main() {
         return false;
     }
 
-    // camera control calls
-    glfwSetCursorPosCallback(window, mouseCameraMovement);
-    glfwSetScrollCallback(window, scrollCameraSpeed);
-
-    // loads GLAD
-    // needed for OpenGL function pointers
-    //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    //{
-    //    cout << "Failed to initialize GLAD" << std::endl;
-    //    return -1;
-    //}
 
     // create mesh and shader program
     //createMesh(gMesh);
     createCubeMesh(cubeMesh, 0, 0, 0, 1);
     createCylinderMesh(cylinderMesh, 0, 0, 0, 1);
+    createPlaneMesh(planeMesh);
     createShaderProgram(vertexShaderSource, fragmentShaderSource, gProgramID);
 
     // while loop to continually render until user closes window
@@ -171,6 +165,7 @@ int main() {
         //renderMesh(gMesh, gProgramID, window, WIREFRAME_MODE);      // render the frame
         renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
         renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderPlaneMesh(planeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
         glfwPollEvents();
@@ -801,4 +796,128 @@ void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, in
 {
     if (key == GLFW_KEY_P && action == GLFW_PRESS)
         perspectiveSwitch = !perspectiveSwitch;
+}
+
+void createPlaneMesh(GLMesh& mesh) {
+    // PLANE ///////////////////////////////////////////////////////////////////////
+    //     v0----v1
+    //    /      / 
+    //   /      /
+    //  v3-----v2
+
+    // Position and Color data
+    GLfloat verts[] = {
+        -5.0f, -1.3f,  5.0f,     1.0f, 1.0f, 1.0f, 1.0f, // 0
+         5.0f, -1.3f,  5.0f,     1.0f, 1.0f, 1.0f, 1.0f, // 1
+         5.0f, -1.3f, -5.0f,     1.0f, 1.0f, 1.0f, 1.0f, // 2
+        -5.0f, -1.3f, -5.0f,     1.0f, 1.0f, 1.0f, 1.0f, // 3
+    };
+
+    // Creates a buffer object for the indices
+    GLshort vertices[] = {
+        0, 1, 3,  // T1
+        2, 1, 3   // T2
+    };
+
+
+    // creates vertex attribute pointer
+    const GLuint vertexFloats = 3;      // number of coordinates per vertex
+    const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
+
+    glGenVertexArrays(1, &mesh.vao);            // generate VAO
+    glBindVertexArray(mesh.vao);                // binds VAO
+
+    glGenBuffers(2, mesh.vbo);                  // generates two buffers
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo[0]); // binds VBOs
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);    // send vertix coordinates to GPU
+
+    mesh.nVertices = sizeof(vertices) / sizeof(vertices[0]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats);
+
+    // vertex attribute pointer for position
+    glVertexAttribPointer(0, vertexFloats, GL_FLOAT, GL_FALSE, strideLen, 0);
+    glEnableVertexAttribArray(0);
+
+    // vertex attribute pointer for color
+    glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
+    glEnableVertexAttribArray(1);
+
+}
+
+void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective) {
+    /*
+    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
+    // enable z-depth buffer
+    glEnable(GL_DEPTH_TEST);
+
+    // clear the background frame and z-depth buffer
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    */
+    // 1. scales object
+    glm::mat4 scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
+
+    // 2. rotates object 
+    glm::mat4 rotation = glm::mat4(1.0f);
+
+    // for no rotation, set radians to 0 and X, Y, and Z values to 1
+    rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
+
+    // 3. places object at origin
+    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.5f));
+
+    // Transformations are applied in right-to-left order.
+    glm::mat4 model = scale * rotation * translation;
+
+    // Transforms the camera: move the camera back (Z axis)
+    //glm::mat4 view = glm::translate(glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 view = camera.GetViewMatrix();
+
+    // Projection MAtrix
+    //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 projection;
+    if (perspective) {
+        projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    }
+    else {
+        projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    }
+
+    // retrieves and passes transformation matrices to shader program
+    GLint modelLoc = glGetUniformLocation(programID, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+    GLint viewLoc = glGetUniformLocation(programID, "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+    GLint projLoc = glGetUniformLocation(programID, "projection");
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    // Set the shader to be used.
+    glUseProgram(programID);
+
+    // Sends transform information to the Vertex shader
+    GLuint transformLocation = glGetUniformLocation(programID, "shaderTransform");
+    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+    // Activate the VBOs contained within the mesh's VAO.
+    glBindVertexArray(mesh.vao);
+
+    // wireframe mode
+    if (WIREFRAME_MODE == true) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
+    // Draw the triangle.
+    glDrawElements(GL_TRIANGLES, mesh.nVertices, GL_UNSIGNED_SHORT, NULL); // Draws the triangle
+
+    // Deactivate the Vertex Array Object.
+    glBindVertexArray(0);
+
+    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
+    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
+    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
