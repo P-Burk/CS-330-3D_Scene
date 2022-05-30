@@ -6,9 +6,10 @@
  * Date: 29 May 2022
  */
 
-#include <glad/glad.h>
+#include <GL/glew.h>
+//#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <gl/GL.h>
+//#include <gl/GL.h>
 #include <iostream>
 #include <vector>
 
@@ -107,7 +108,6 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-
     // creates window object
     GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, NULL, NULL);
     if (window == NULL) {
@@ -122,17 +122,29 @@ int main() {
     // generate window
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    // GLEW: initialize
+    // ----------------
+    // Note: if using GLEW version 1.13 or earlier
+    glewExperimental = GL_TRUE;
+    GLenum GlewInitResult = glewInit();
+
+    if (GLEW_OK != GlewInitResult)
+    {
+        std::cerr << glewGetErrorString(GlewInitResult) << std::endl;
+        return false;
+    }
+
     // camera control calls
     glfwSetCursorPosCallback(window, mouseCameraMovement);
     glfwSetScrollCallback(window, scrollCameraSpeed);
 
     // loads GLAD
     // needed for OpenGL function pointers
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
+    //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    //{
+    //    cout << "Failed to initialize GLAD" << std::endl;
+    //    return -1;
+    //}
 
     // create mesh and shader program
     //createMesh(gMesh);
