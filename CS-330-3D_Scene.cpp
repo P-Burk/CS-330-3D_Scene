@@ -57,11 +57,9 @@ bool perspectiveSwitch = true;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
-void createMesh(GLMesh& mesh);
 void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen);
 void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen);
 void createPlaneMesh(GLMesh& mesh);
-void renderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE);
 void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
 void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
 void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
@@ -212,60 +210,6 @@ void processInput(GLFWwindow* window) {
     glfwSetKeyCallback(window, perspectiveToggle);
 }
 
-// creates the mesh for a shape
-void createMesh(GLMesh& mesh) {
-
-    // Position and Color data
-    // Pyramid consists of 4 triangle (sides) and one square (bottom)
-    // Bottom square is actually 2 triangles, so 6 triangles total.
-    GLfloat verts[] = {
-        // Vertex Positions    // Colors (r,g,b,a)
-        // Triangle 1 (front side)
-         0.0f, 0.5f, 0.0f,  1.0f, 1.0f, 1.0f, 1.0f,     // Point 0 - WHITE
-         0.5f, 0.0f, 0.5f,  1.0f, 0.0f, 0.0f, 1.0f,     // Point 1 - RED
-        -0.5f, 0.0f, 0.5f,  0.0f, 1.0f, 0.0f, 1.0f,     // Point 2 - GREEN
-
-        // Triangle 2 (back side) (reuses vertex #0
-        0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 1.0f, 1.0f,     // Point 3 - CYAN
-       -0.5f, 0.0f, -0.5f,  1.0f, 0.0f, 1.0f, 1.0f      // Point 4 - VIOLET
-    };
-
-    // Creates a buffer object for the indices
-    GLushort vertices[] = { 0, 1, 2,    // Triangle 1
-                            0, 3, 4,    // Triangle 2
-                            0, 2, 4,    // Triangle 3
-                            0, 3, 1,    // Triangle 4
-                            4, 3, 2,    // Triangle 5
-                            3, 1, 2, }; // Triangle 6
-
-
-    // creates vertex attribute pointer
-    const GLuint vertexFloats = 3;      // number of coordinates per vertex
-    const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
-
-    glGenVertexArrays(1, &mesh.vao);            // generate VAO
-    glBindVertexArray(mesh.vao);                // binds VAO
-
-    glGenBuffers(2, mesh.vbo);                  // generates two buffers
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo[0]); // binds VBOs
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);    // send vertix coordinates to GPU
-
-    mesh.nVertices = sizeof(vertices) / sizeof(vertices[0]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo[1]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-
-    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats);
-
-    // vertex attribute pointer for position
-    glVertexAttribPointer(0, vertexFloats, GL_FLOAT, GL_FALSE, strideLen, 0);
-    glEnableVertexAttribArray(0);
-
-    // vertex attribute pointer for color
-    glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
-    glEnableVertexAttribArray(1);
-}
-
 void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen) {
     GLfloat halfEdgeLen = edgeLen * 0.5;
 
@@ -311,7 +255,6 @@ void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfi
         7, 6, 3,   // BoT2
     };
 
-
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex
     const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
@@ -338,7 +281,6 @@ void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfi
     glEnableVertexAttribArray(1);
 
 }
-
 
 // creates cylinder
 void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen) {
@@ -482,72 +424,6 @@ void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, 
     // vertex attribute pointer for color
     glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
     glEnableVertexAttribArray(1);
-}
-
-// used for rendering the mesh
-void renderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE) {
-
-    // enable z-depth buffer
-    glEnable(GL_DEPTH_TEST);
-
-    // clear the background frame and z-depth buffer
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // 1. scales object
-    glm::mat4 scale = glm::scale(glm::vec3(2.0f, 2.0f, 2.0f));
-
-    // 2. rotates object 
-    glm::mat4 rotation = glm::rotate(0.5f, glm::vec3(0.5f, 1.0f, 0.0f));
-
-    // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f));
-
-    // Transformations are applied in right-to-left order.
-    glm::mat4 model = translation * rotation * scale;
-
-    // Transforms the camera: move the camera back (Z axis)
-    glm::mat4 view = glm::translate(glm::vec3(0.0f, 0.0f, -2.0f));
-
-    // Projection MAtrix
-    //glm::mat4 projection = glm::perspective(45.0f, (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
-
-    // retrieves and passes transformation matrices to shader program
-    GLint modelLoc = glGetUniformLocation(programID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-    GLint viewLoc = glGetUniformLocation(programID, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-    GLint projLoc = glGetUniformLocation(programID, "projection");
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-
-    // Set the shader to be used.
-    glUseProgram(programID);
-
-    // Sends transform information to the Vertex shader
-    GLuint transformLocation = glGetUniformLocation(programID, "shaderTransform");
-    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(model));
-
-    // Activate the VBOs contained within the mesh's VAO.
-    glBindVertexArray(mesh.vao);
-
-    // wireframe mode
-    if (WIREFRAME_MODE == true) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-
-
-    // Draw the triangle.
-    glDrawElements(GL_TRIANGLES, mesh.nVertices, GL_UNSIGNED_SHORT, NULL); // Draws the triangle
-
-    // Deactivate the Vertex Array Object.
-    glBindVertexArray(0);
-
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 // render the cube
@@ -819,7 +695,6 @@ void createPlaneMesh(GLMesh& mesh) {
         2, 1, 3   // T2
     };
 
-
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex
     const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
@@ -844,19 +719,10 @@ void createPlaneMesh(GLMesh& mesh) {
     // vertex attribute pointer for color
     glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
     glEnableVertexAttribArray(1);
-
 }
 
 void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective) {
-    /*
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // enable z-depth buffer
-    glEnable(GL_DEPTH_TEST);
 
-    // clear the background frame and z-depth buffer
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    */
     // 1. scales object
     glm::mat4 scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
 
@@ -877,7 +743,6 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, c
     glm::mat4 view = camera.GetViewMatrix();
 
     // Projection MAtrix
-    //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
     glm::mat4 projection;
     if (perspective) {
         projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
@@ -916,8 +781,4 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, c
 
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
