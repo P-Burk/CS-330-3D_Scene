@@ -41,7 +41,7 @@ GLuint textureID;
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const char* const WINDOW_TITLE = "4-5 Milestone: Interactivity in a 3D Scene";
-const char* textureFile = "resources/textures/brick_wall.jpg";
+const char* textureFile = "resources/textures/dark_wood.jpg";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
 float ROTATE_X = 1.0f;
@@ -147,7 +147,6 @@ int main() {
 
 
     // create mesh and shader program
-    //createMesh(gMesh);
     createCubeMesh(cubeMesh, 0, 0, 0, 1);
     createCylinderMesh(cylinderMesh, 0, 0, 0, 1);
     createPlaneMesh(planeMesh);
@@ -179,7 +178,6 @@ int main() {
 
         processInput(window);                       // process input
 
-        //renderMesh(gMesh, gProgramID, window, WIREFRAME_MODE);      // render the frame
         renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
         renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
         renderPlaneMesh(planeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
@@ -695,17 +693,17 @@ void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, in
 
 void createPlaneMesh(GLMesh& mesh) {
     // PLANE ///////////////////////////////////////////////////////////////////////
-    //     v0----v1
-    //    /      / 
-    //   /      /
+    //  v0-----v1
+    //  |       | 
+    //  |       |
     //  v3-----v2
 
     // Position and Color data
     GLfloat verts[] = {
-        -5.0f, -1.3f,  5.0f,     1.0f, 1.0f, 1.0f, 1.0f, // 0
-         5.0f, -1.3f,  5.0f,     1.0f, 1.0f, 1.0f, 1.0f, // 1
-         5.0f, -1.3f, -5.0f,     1.0f, 1.0f, 1.0f, 1.0f, // 2
-        -5.0f, -1.3f, -5.0f,     1.0f, 1.0f, 1.0f, 1.0f, // 3
+        -5.0f, -1.3f,  5.0f,     1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 1.0f, // 0
+         5.0f, -1.3f,  5.0f,     1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // 1
+         5.0f, -1.3f, -5.0f,     1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // 2
+        -5.0f, -1.3f, -5.0f,     1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 0.0f // 3
     };
 
     // Creates a buffer object for the indices
@@ -717,6 +715,7 @@ void createPlaneMesh(GLMesh& mesh) {
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex
     const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
+    const GLuint textureFloats = 2;     // floats for texture mapping
 
     glGenVertexArrays(1, &mesh.vao);            // generate VAO
     glBindVertexArray(mesh.vao);                // binds VAO
@@ -729,7 +728,7 @@ void createPlaneMesh(GLMesh& mesh) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo[1]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats);
+    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats + textureFloats);
 
     // vertex attribute pointer for position
     glVertexAttribPointer(0, vertexFloats, GL_FLOAT, GL_FALSE, strideLen, 0);
@@ -738,6 +737,10 @@ void createPlaneMesh(GLMesh& mesh) {
     // vertex attribute pointer for color
     glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
     glEnableVertexAttribArray(1);
+
+    // vertex attibute pointer for texture
+    glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float) * (vertexFloats + colorFloats)));
+    glEnableVertexAttribArray(2);
 }
 
 void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective) {
@@ -794,6 +797,10 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, c
     if (WIREFRAME_MODE == true) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
+
+    // bind textures on corresponding texture units
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Draw the triangle.
     glDrawElements(GL_TRIANGLES, mesh.nVertices, GL_UNSIGNED_SHORT, NULL); // Draws the triangle
