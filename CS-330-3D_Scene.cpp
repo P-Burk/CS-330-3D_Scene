@@ -74,9 +74,9 @@ void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, in
 
 // vertex shader source code
 const char* vertexShaderSource = "#version 440 core\n"
-"layout (location = 0) in vec3 position;\n"     // Vertex data from Vertex Attrib Pointer 0
-"layout (location = 1) in vec4 color;\n"        // Color data from Vertex Attrib Pointer 1
-"out vec4 vertexColor;\n"                       // Variable to transfer color data to the fragment shader
+"layout (location = 0) in vec3 position;\n"
+"layout (location = 2) in vec2 textureCoordinate;\n"
+"out vec2 vertexTextureCoordinate;\n"
 
 "uniform mat4 model;\n"
 "uniform mat4 view;\n"
@@ -85,16 +85,18 @@ const char* vertexShaderSource = "#version 440 core\n"
 "void main()\n"
 "{\n"
 "   gl_Position = projection * view * model * vec4(position, 1.0f);\n"    // transforms vertex data 
-"   vertexColor = color;\n"     // incoming color data
+"   vertexTextureCoordinate = textureCoordinate;\n"
 "}\n\0";
 
 // fragment shader source code
 const char* fragmentShaderSource = "#version 440 core\n"
-"in vec4 vertexColor;\n"
-"out vec4 fragColor;\n"
+"in vec2 vertexTextureCoordinate;\n"
+"out vec4 fragmentColor;\n"
+"uniform sampler2D TEXTURE;\n"
+
 "void main()\n"
 "{\n"
-"   fragColor = vec4(vertexColor);\n"
+"   fragmentColor = texture(TEXTURE, vertexTextureCoordinate);\n"
 "}\n\0";
 
 
