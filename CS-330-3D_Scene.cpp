@@ -8,6 +8,8 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 #include <iostream>
 #include <vector>
 
@@ -33,11 +35,13 @@ GLMesh cubeMesh;
 GLMesh cylinderMesh;
 GLMesh planeMesh;
 GLuint gProgramID;
+GLuint textureID;
 
 // constants for windown attributes
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const char* const WINDOW_TITLE = "4-5 Milestone: Interactivity in a 3D Scene";
+const char* textureFile = "resources/textures/brick_wall.jpg";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
 float ROTATE_X = 1.0f;
@@ -70,6 +74,9 @@ void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
 void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset);
 void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, int mods);
+void flipImageVertically(unsigned char* image, int width, int height, int channels);
+bool createTexture(const char* filename, GLuint& textureId);
+void destroyTexture(GLuint textureId);
 
 
 // vertex shader source code
@@ -145,6 +152,16 @@ int main() {
     createCylinderMesh(cylinderMesh, 0, 0, 0, 1);
     createPlaneMesh(planeMesh);
     createShaderProgram(vertexShaderSource, fragmentShaderSource, gProgramID);
+
+    // Load texture
+    if (!createTexture(textureFile, textureID)) {
+        cout << "Failed to load texture " << textureFile << endl;
+        return EXIT_FAILURE;
+    }
+    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+    glUseProgram(gProgramID);
+    // We set the texture as texture unit 0
+    glUniform1i(glGetUniformLocation(gProgramID, "TEXTURE"), 0);
 
     // while loop to continually render until user closes window
     while (!glfwWindowShouldClose(window)) {
@@ -783,4 +800,70 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, c
 
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
+}
+
+
+// flips image vertically because images are loaded opposite of how OpenGL interprets Y-axis
+void flipImageVertically(unsigned char* image, int width, int height, int channels) {
+    for (int j = 0; j < height / 2; ++j) {
+        int index1 = j * width * channels;
+        int index2 = (height - 1 - j) * width * channels;
+
+        for (int i = width * channels; i > 0; --i) {
+            unsigned char tmp = image[index1];
+            image[index1] = image[index2];
+            image[index2] = tmp;
+            ++index1;
+            ++index2;
+        }
+    }
+}
+
+// creates the texture
+bool createTexture(const char* filename, GLuint& textureId) {
+
+    int width, height, channels;
+    unsigned char* image = stbi_load(filename, &width, &height, &channels, 0);
+    if (image) {
+
+        // flip the image on y-axis
+        flipImageVertically(image, width, height, channels);
+
+        // generate and bind texture
+        glGenTextures(1, &textureId);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+
+        // set the texture wrapping parameters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        // set texture filtering parameters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // logic for handling 3 or 4 channel images
+        if (channels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+        } else if (channels == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+        } else {
+            cout << "No support for images with " << channels << " channels" << endl;
+            return false;
+        }
+
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(image);
+
+        // unbind texture
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        return true;
+    }
+
+    return false;
+}
+
+// destroys texture
+void destroyTexture(GLuint textureId) {
+    glGenTextures(1, &textureId);
 }
