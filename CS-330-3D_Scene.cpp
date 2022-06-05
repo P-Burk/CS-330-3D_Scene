@@ -43,7 +43,7 @@ const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const char* const WINDOW_TITLE = "4-5 Milestone: Interactivity in a 3D Scene";
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
-const char* camFrontTextureFile = "resources/textures/Camera_front1.png";
+const char* camFrontTextureFile = "resources/textures/Full_camera3.png";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
 float ROTATE_X = 1.0f;
@@ -185,7 +185,7 @@ int main() {
 
         processInput(window);                       // process input
 
-        renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
+        renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID2);
         renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
         renderPlaneMesh(planeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
 
@@ -235,8 +235,6 @@ void processInput(GLFWwindow* window) {
 }
 
 void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen) {
-    GLfloat halfEdgeLen = edgeLen * 0.5;
-
     // cube ///////////////////////////////////////////////////////////////////////
     //    v4----- v5
     //   /|      /|
@@ -250,64 +248,64 @@ void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfi
     GLfloat verts[] = {
         // CUBE ////////////////////////////////////////////////////////////////////////////////////
         // front 1
-        -0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V0  // 0
-         0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V1  // 1
-        -0.5f, -0.5f,  0.5f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V3  // 2
+        -0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f, 1.0f,     0.2f, 0.5f,  // V0  // 0
+         0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1  // 1
+        -0.5f, -0.5f,  0.5f,    1.0f, 1.0f, 1.0f, 1.0f,     0.2f, 0.2f,  // V3  // 2
 
         // front 2
-         0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V2  // 3
-         0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V1  // 4
-        -0.5f, -0.5f,  0.5f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V3  // 5
+         0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2  // 3
+         0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1  // 4
+        -0.5f, -0.5f,  0.5f,    1.0f, 1.0f, 1.0f, 1.0f,     0.2f, 0.2f,  // V3  // 5
 
         // back 1
-        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V6   // 6
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,  // V5   // 7
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V7   // 8
+        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     0.8f, 1.0f,  // V6   // 6
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.8f, 0.7f,  // V5   // 7
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.2f, 1.0f,  // V7   // 8
 
         // back 2
-       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V4   // 9
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,  // V5   // 10
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V7   // 11
+       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.2f, 0.7f,  // V4   // 9
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.8f, 0.7f,  // V5   // 10
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.2f, 1.0f,  // V7   // 11
 
         // left 1
-       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V4   // 12
-       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V0   // 13
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V7   // 14
+       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.0f, 0.5f,  // V4   // 12
+       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.2f, 0.5f,  // V0   // 13
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.2f,  // V7   // 14
 
         // left 2
-       -0.5f, -0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V3   // 15
-       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V0   // 16
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V7   // 17
+       -0.5f, -0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.2f, 0.2f,  // V3   // 15
+       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.2f, 0.5f,  // V0   // 16
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.2f,  // V7   // 17
 
         // right 1
-        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V1   // 18
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V5   // 19
-        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V2   // 20
+        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1   // 18
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.5f,  // V5   // 19
+        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2   // 20
 
         // right 2
-        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V6   // 21
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V5   // 22
-        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V2   // 23
+        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.2f,  // V6   // 21
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.5f,  // V5   // 22
+        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2   // 23
 
         // top 1
-       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,  // V0   // 24
-       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V4   // 25
-        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,  // V1   // 26
+       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.2f, 0.5f,  // V0   // 24
+       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.2f, 0.7f,  // V4   // 25
+        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1   // 26
 
         // top 2
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V5   // 27
-       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V4   // 28
-        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,  // V1   // 29
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.8f, 0.7f,  // V5   // 27
+       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.2f, 0.7f,  // V4   // 28
+        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1   // 29
 
         // bottom 1
-       -0.5f, -0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,  // V3   // 30
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V7   // 31
-        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V2   // 32
+       -0.5f, -0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.2f, 0.2f,  // V3   // 30
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.2f, 0.0f,  // V7   // 31
+        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2   // 32
 
         // bottom 2
-        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V6   // 33
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V7   // 34
-        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V2   // 35
+        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.0f,  // V6   // 33
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.2f, 0.0f,  // V7   // 34
+        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2   // 35
     };
 
     // Creates a buffer object for the indices
@@ -520,7 +518,7 @@ void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, co
     */
 
     // 1. scales object
-    glm::mat4 scale = glm::scale(glm::vec3(3.0f, 2.5f, 1.0f));
+    glm::mat4 scale = glm::scale(glm::vec3(3.3f, 2.5f, 1.0f));
 
     // 2. rotates object 
     glm::mat4 rotation = glm::mat4(1.0f);
@@ -601,7 +599,7 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     */
     // 1. scales object
-    glm::mat4 scale = glm::scale(glm::vec3(1.5f, 1.5f, 2.0f));
+    glm::mat4 scale = glm::scale(glm::vec3(1.8f, 2.0f, 2.0f));
 
     // 2. rotates object 
     glm::mat4 rotation = glm::mat4(1.0f);
@@ -610,7 +608,7 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.5f));
+    glm::mat4 translation = glm::translate(glm::vec3(0.23f, -0.1f, 0.5f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = scale * rotation * translation;
