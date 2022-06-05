@@ -35,13 +35,15 @@ GLMesh cubeMesh;
 GLMesh cylinderMesh;
 GLMesh planeMesh;
 GLuint gProgramID;
-GLuint textureID;
+GLuint textureID1;
+GLuint textureID2;
 
 // constants for windown attributes
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const char* const WINDOW_TITLE = "4-5 Milestone: Interactivity in a 3D Scene";
-const char* textureFile = "resources/textures/dark_wood.jpg";
+const char* woodTextureFile = "resources/textures/dark_wood.jpg";
+const char* camFrontTextureFile = "resources/textures/Camera_front1.png";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
 float ROTATE_X = 1.0f;
@@ -64,9 +66,9 @@ void processInput(GLFWwindow* window);
 void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen);
 void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen);
 void createPlaneMesh(GLMesh& mesh);
-void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
-void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
-void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective);
+void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
+void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
+void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
 void destoryMesh(GLMesh& mesh);
 bool createShaderProgram(const char* vtxShaderSource, const char* fragShaderSource, GLuint& programId);
 void destroyShaderProgram(GLuint programID);
@@ -153,8 +155,13 @@ int main() {
     createShaderProgram(vertexShaderSource, fragmentShaderSource, gProgramID);
 
     // Load texture
-    if (!createTexture(textureFile, textureID)) {
-        cout << "Failed to load texture " << textureFile << endl;
+    if (!createTexture(woodTextureFile, textureID1)) {
+        cout << "Failed to load texture " << woodTextureFile << endl;
+        return EXIT_FAILURE;
+    }
+    // Load texture
+    if (!createTexture(camFrontTextureFile, textureID2)) {
+        cout << "Failed to load texture " << woodTextureFile << endl;
         return EXIT_FAILURE;
     }
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
@@ -178,9 +185,9 @@ int main() {
 
         processInput(window);                       // process input
 
-        renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
-        renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
-        renderPlaneMesh(planeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
+        renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
+        renderPlaneMesh(planeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
         glfwPollEvents();
@@ -242,39 +249,88 @@ void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfi
     // Position and Color data
     GLfloat verts[] = {
         // CUBE ////////////////////////////////////////////////////////////////////////////////////
-        // front
-        xPos - halfEdgeLen, yPos + halfEdgeLen, zPos + halfEdgeLen,     1.0f, 0.0f, 0.0f, 1.0f, // 0
-        xPos + halfEdgeLen, yPos + halfEdgeLen, zPos + halfEdgeLen,     0.0f, 1.0f, 0.0f, 1.0f, // 1
-        xPos + halfEdgeLen, yPos - halfEdgeLen, zPos + halfEdgeLen,     0.0f, 0.0f, 1.0f, 1.0f, // 2
-        xPos - halfEdgeLen, yPos - halfEdgeLen, zPos + halfEdgeLen,     1.0f, 1.0f, 1.0f, 1.0f, // 3
+        // front 1
+        -0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V0  // 0
+         0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V1  // 1
+        -0.5f, -0.5f,  0.5f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V3  // 2
 
-        // back
-        xPos - halfEdgeLen, yPos + halfEdgeLen, zPos - halfEdgeLen,     1.0f, 1.0f, 0.0f, 1.0f, // 4
-        xPos + halfEdgeLen, yPos + halfEdgeLen, zPos - halfEdgeLen,     0.0f, 1.0f, 1.0f, 1.0f, // 5
-        xPos + halfEdgeLen, yPos - halfEdgeLen, zPos - halfEdgeLen,     1.0f, 0.0f, 1.0f, 1.0f, // 6
-        xPos - halfEdgeLen, yPos - halfEdgeLen, zPos - halfEdgeLen,     0.5f, 1.0f, 1.0f, 1.0f, // 7
+        // front 2
+         0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V2  // 3
+         0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V1  // 4
+        -0.5f, -0.5f,  0.5f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V3  // 5
+
+        // back 1
+        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V6   // 6
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,  // V5   // 7
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V7   // 8
+
+        // back 2
+       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V4   // 9
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,  // V5   // 10
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V7   // 11
+
+        // left 1
+       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V4   // 12
+       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V0   // 13
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V7   // 14
+
+        // left 2
+       -0.5f, -0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V3   // 15
+       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     1.0f, 1.0f,  // V0   // 16
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V7   // 17
+
+        // right 1
+        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V1   // 18
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V5   // 19
+        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V2   // 20
+
+        // right 2
+        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V6   // 21
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V5   // 22
+        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V2   // 23
+
+        // top 1
+       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f,  // V0   // 24
+       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V4   // 25
+        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,  // V1   // 26
+
+        // top 2
+        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V5   // 27
+       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.0f, 1.0f,  // V4   // 28
+        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f,  // V1   // 29
+
+        // bottom 1
+       -0.5f, -0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,  // V3   // 30
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V7   // 31
+        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V2   // 32
+
+        // bottom 2
+        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // V6   // 33
+       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,  // V7   // 34
+        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     1.0f, 1.0f,  // V2   // 35
     };
 
     // Creates a buffer object for the indices
     GLshort vertices[] = {
         // CUBE //////////////////////////////
-        0, 1, 3,  // FT1
-        2, 1, 3,  // FT2
-        4, 5, 7,  // BaT1
-        6, 5, 7,  // BaT2
-        0, 3, 4,  // LT1
-        7, 3, 4,  // LT2
-        1, 2, 5,  // RT1
-        6, 2, 5,  // RT2
-        4, 0, 5,  // TT1
-        1, 0, 5,  // TT2
-        2, 6, 3,  // BoT1
-        7, 6, 3,   // BoT2
+        0, 1, 2,    // FT1
+        3, 4, 5,    // FT2
+        6, 7, 8,    // BaT1
+        9, 10, 11,  // BaT2
+        12, 13, 14,    // LT1
+        15, 16, 17,    // LT2
+        18, 19, 20,    // RT1
+        21, 22, 23,    // RT2
+        24, 25, 26,    // TT1
+        27, 28, 29,    // TT2
+        30, 31, 32,    // BoT1
+        33, 34, 35    // BoT2
     };
 
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex
     const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
+    const GLuint textureFloats = 2;     // floats for texture mapping
 
     glGenVertexArrays(1, &mesh.vao);            // generate VAO
     glBindVertexArray(mesh.vao);                // binds VAO
@@ -287,7 +343,7 @@ void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfi
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo[1]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats);
+    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats + textureFloats);
 
     // vertex attribute pointer for position
     glVertexAttribPointer(0, vertexFloats, GL_FLOAT, GL_FALSE, strideLen, 0);
@@ -297,6 +353,9 @@ void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfi
     glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
     glEnableVertexAttribArray(1);
 
+    // vertex attibute pointer for texture
+    glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float) * (vertexFloats + colorFloats)));
+    glEnableVertexAttribArray(2);
 }
 
 // creates cylinder
@@ -420,6 +479,7 @@ void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, 
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex
     const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
+    //const GLuint textureFloats = 2;     // floats for texture mapping
 
     glGenVertexArrays(1, &mesh.vao);            // generate VAO
     glBindVertexArray(mesh.vao);                // binds VAO
@@ -441,10 +501,14 @@ void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, 
     // vertex attribute pointer for color
     glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
     glEnableVertexAttribArray(1);
+
+    // vertex attibute pointer for texture
+    //glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float)* (vertexFloats + colorFloats)));
+    //glEnableVertexAttribArray(2);
 }
 
 // render the cube
-void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective) {
+void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID) {
     /*
     //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
     // enable z-depth buffer
@@ -510,6 +574,10 @@ void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, co
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
+    // bind textures on corresponding texture units
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
     // Draw the triangle.
     glDrawElements(GL_TRIANGLES, mesh.nVertices, GL_UNSIGNED_SHORT, NULL); // Draws the triangle
 
@@ -522,7 +590,7 @@ void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, co
 }
 
 // render the cylinder
-void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective) {
+void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID) {
     /*
     //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
     // enable z-depth buffer
@@ -743,7 +811,7 @@ void createPlaneMesh(GLMesh& mesh) {
     glEnableVertexAttribArray(2);
 }
 
-void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective) {
+void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID) {
 
     // 1. scales object
     glm::mat4 scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
@@ -800,7 +868,7 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, c
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID1);
 
     // Draw the triangle.
     glDrawElements(GL_TRIANGLES, mesh.nVertices, GL_UNSIGNED_SHORT, NULL); // Draws the triangle
