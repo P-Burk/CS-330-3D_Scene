@@ -30,13 +30,13 @@ struct GLMesh {
 };
 
 // initialize mesh and shader program variables
-GLMesh gMesh;
 GLMesh cubeMesh;
 GLMesh cylinderMesh;
 GLMesh planeMesh;
 GLuint gProgramID;
 GLuint textureID1;
 GLuint textureID2;
+GLuint textureID3;
 
 // constants for windown attributes
 const int WINDOW_WIDTH = 800;
@@ -44,6 +44,7 @@ const int WINDOW_HEIGHT = 600;
 const char* const WINDOW_TITLE = "4-5 Milestone: Interactivity in a 3D Scene";
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camFrontTextureFile = "resources/textures/Full_camera3.png";
+const char* camLensTextureFile = "resources/textures/lens1.png";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
 float ROTATE_X = 1.0f;
@@ -161,9 +162,15 @@ int main() {
     }
     // Load texture
     if (!createTexture(camFrontTextureFile, textureID2)) {
-        cout << "Failed to load texture " << woodTextureFile << endl;
+        cout << "Failed to load texture " << camFrontTextureFile << endl;
         return EXIT_FAILURE;
     }
+    // Load texture
+    if (!createTexture(camLensTextureFile, textureID3)) {
+        cout << "Failed to load texture " << camLensTextureFile << endl;
+        return EXIT_FAILURE;
+    }
+
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     glUseProgram(gProgramID);
     // We set the texture as texture unit 0
@@ -186,7 +193,7 @@ int main() {
         processInput(window);                       // process input
 
         renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID2);
-        renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
+        renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID3);
         renderPlaneMesh(planeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
@@ -195,7 +202,7 @@ int main() {
 
 
     // EXIT CODE /////////////////////////////////////////////
-    destoryMesh(gMesh);
+
     destroyShaderProgram(gProgramID);
     glfwTerminate();
     return 0;
@@ -359,48 +366,46 @@ void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfi
 // creates cylinder
 void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen) {
     GLfloat halfEdgeLen = edgeLen * 0.5;
-
+    /*
     // Position and Color data
     GLfloat verts[] = {
         // front
-         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 0
-         0.1f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 1
-         0.3f,  0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // 2
-         0.4f,  0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // 3
-         0.5f,  0.1f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,   // 4
-         0.5f, -0.1f, 0.5f,     0.0f, 1.0f, 1.0f, 1.0f,   // 5
-         0.4f, -0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // 6
-         0.3f, -0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // 7
-         0.1f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 8
-        -0.1f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 9
-        -0.3f, -0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // 10
-        -0.4f, -0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // 11
-        -0.5f, -0.1f, 0.5f,     0.0f, 1.0f, 1.0f, 1.0f,   // 12
-        -0.5f,  0.1f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,   // 13
-        -0.4f,  0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // 14
-        -0.3f,  0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // 15
-        -0.1f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 16
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V0
+         0.1f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V1
+         0.3f,  0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // V2
+         0.4f,  0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // V3
+         0.5f,  0.1f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,   // V4
+         0.5f, -0.1f, 0.5f,     0.0f, 1.0f, 1.0f, 1.0f,   // V5
+         0.4f, -0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // V6
+         0.3f, -0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // V7
+         0.1f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V8
+        -0.1f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V9
+        -0.3f, -0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // V10
+        -0.4f, -0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // V11
+        -0.5f, -0.1f, 0.5f,     0.0f, 1.0f, 1.0f, 1.0f,   // V12
+        -0.5f,  0.1f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,   // V13
+        -0.4f,  0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // V14
+        -0.3f,  0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // V15
+        -0.1f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V16
 
         // back
-         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 17
-         0.1f,  0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 18
-         0.3f,  0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // 19
-         0.4f,  0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // 20
-         0.5f,  0.1f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,   // 21
-         0.5f, -0.1f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,   // 22
-         0.4f, -0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // 23
-         0.3f, -0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // 24
-         0.1f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 25
-        -0.1f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 26
-        -0.3f, -0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // 27
-        -0.4f, -0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // 28
-        -0.5f, -0.1f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,   // 29
-        -0.5f,  0.1f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,   // 30
-        -0.4f,  0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // 31
-        -0.3f,  0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // 32
-        -0.1f,  0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // 33
-
-
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V17
+         0.1f,  0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V18
+         0.3f,  0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // V19
+         0.4f,  0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // V20
+         0.5f,  0.1f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,   // V21
+         0.5f, -0.1f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,   // V22
+         0.4f, -0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // V23
+         0.3f, -0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // V24
+         0.1f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V25
+        -0.1f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V26
+        -0.3f, -0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // V27
+        -0.4f, -0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // V28
+        -0.5f, -0.1f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,   // V29
+        -0.5f,  0.1f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,   // V30
+        -0.4f,  0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,   // V31
+        -0.3f,  0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,   // V32
+        -0.1f,  0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,   // V33
     };
 
     // Creates a buffer object for the indices
@@ -472,12 +477,162 @@ void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, 
         1, 16, 18,
         33, 16, 18
     };
+    */
+
+    // Position and Color data
+    GLfloat verts[] = {
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //0
+         0.1f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.533f, 0.333f,  // V1  //1
+         0.3f,  0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.6f,   0.9f,    // V2  //2
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //3
+         0.3f,  0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.6f,   0.9f,    // V2  //4
+         0.4f,  0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.633f, 0.266f,  // V3  //5
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //6
+         0.4f,  0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.633f, 0.266f,  // V3  //7
+         0.5f,  0.1f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.666f, 0.2f,    // V4  //8
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //9
+         0.5f,  0.1f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.666f, 0.2f,    // V4  //10
+         0.5f, -0.1f, 0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.666f, 0.133f,  // V5  //11
+         
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //12
+         0.5f, -0.1f, 0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.666f, 0.133f,  // V5  //13
+         0.4f, -0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.633f, 0.066f,  // V6  //14
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //15
+         0.4f, -0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.633f, 0.066f,  // V6  //16
+         0.3f, -0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.6f,   0.033f,  // V7  //17
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //18
+         0.3f, -0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.6f,   0.033f,  // V7  //19
+         0.1f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.533f, 0.0f,    // V8  //20
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //21
+         0.1f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.533f, 0.0f,    // V8  //22
+        -0.1f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.466f, 0.0f,    // V9  //23
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //24
+        -0.1f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.466f, 0.0f,    // V9  //25
+        -0.3f, -0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.4f,   0.033f,  // V10 //26
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //27
+        -0.3f, -0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.4f,   0.033f,  // V10 //28
+        -0.4f, -0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.366f, 0.066f,  // V11 //29
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //30
+        -0.4f, -0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.366f, 0.066f,  // V11 //31
+        -0.5f, -0.1f, 0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.333f, 0.133f,  // V12 //32
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //33
+        -0.5f, -0.1f, 0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.333f, 0.133f,  // V12 //34
+        -0.5f,  0.1f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.333f, 0.2f,    // V13 //35
+     
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //36
+        -0.5f,  0.1f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.333f, 0.2f,    // V13 //37
+        -0.4f,  0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.366f, 0.266f,  // V14 //38
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //39
+        -0.4f,  0.3f, 0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.366f, 0.266f,  // V14 //40
+        -0.3f,  0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.4f,   0.9f,    // V15 //41
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //42
+        -0.3f,  0.4f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.4f,   0.9f,    // V15 //43
+        -0.1f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.466f, 0.333f,  // V16 //44
+
+         0.0f,  0.0f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.5f,   0.166f,  // V0  //45
+        -0.1f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.466f, 0.333f,  // V16 //46
+         0.1f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.533f, 0.333f,  // V1  //47
+
+         //back
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //48
+         0.1f,  0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.533f, 1.0f,    // V18 //49
+         0.3f,  0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,    0.6f,   0.966f,  // V19 //50
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //51
+         0.3f,  0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,    0.6f,   0.966f,  // V19 //52
+         0.4f,  0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,    0.633f, 0.933f,  // V20 //53
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //54
+         0.4f,  0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,    0.633f, 0.933f,  // V20 //55
+         0.5f,  0.1f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,    0.666f, 0.866f,  // V21 //56
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //57
+         0.5f,  0.1f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,    0.666f, 0.866f,  // V21 //58
+         0.5f, -0.1f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,    0.666f, 0.8f,    // V22 //59
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //60
+         0.5f, -0.1f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,    0.666f, 0.8f,    // V22 //61
+         0.4f, -0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,    0.633f, 0.733f,  // V23 //62
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //63
+         0.4f, -0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,    0.633f, 0.733f,  // V23 //64
+         0.3f, -0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,    0.6f,   0.7f,    // V24 //65
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //66
+         0.3f, -0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,    0.6f,   0.7f,    // V24 //67
+         0.1f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.533f, 0.666f,  // V25 //68
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //69
+         0.1f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.533f, 0.666f,  // V25 //70
+        -0.1f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.466f, 0.666f,  // V26 //71
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //72
+        -0.1f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.466f, 0.666f,  // V26 //73
+        -0.3f, -0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,    0.4f,   0.7f,    // V27 //74
+
+         0.0f,  0.0f, -0.5f,      1.0f, 0.0f, 0.0f, 1.0f,   0.5f,   0.833f,  // V17 //75
+        -0.3f, -0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,    0.4f,   0.7f,    // V27 //76
+        -0.4f, -0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,    0.366f, 0.733f,  // V28 //77
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //78
+        -0.4f, -0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,    0.366f, 0.733f,  // V28 //79
+        -0.5f, -0.1f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,    0.333f, 0.8f,    // V29 //80
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //81
+        -0.5f, -0.1f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,    0.333f, 0.8f,    // V29 //82
+        -0.5f,  0.1f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,    0.333f, 0.866f,  // V30 //83
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //84
+        -0.5f,  0.1f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,    0.333f, 0.866f,  // V30 //85
+        -0.4f,  0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,    0.366f, 0.933f,  // V31 //86
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //87
+        -0.4f,  0.3f, -0.5f,     1.0f, 1.0f, 1.0f, 1.0f,    0.366f, 0.933f,  // V31 //88
+        -0.3f,  0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,    0.4f,   0.966f,  // V32 //89
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //90
+        -0.3f,  0.4f, -0.5f,     0.0f, 0.0f, 1.0f, 1.0f,    0.4f,   0.966f,  // V32 //91
+        -0.1f,  0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.466f, 1.0f,    // V33 //92
+
+         0.0f,  0.0f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.5f,   0.833f,  // V17 //93
+        -0.1f,  0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.466f, 1.0f,    // V33 //94
+         0.1f,  0.5f, -0.5f,     1.0f, 0.0f, 0.0f, 1.0f,    0.533f, 1.0f,    // V18 //95
+    };
+
+    // Creates a buffer object for the indices
+    GLshort vertices[] = { 
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 
+        10, 11, 12, 13, 14, 15, 16, 17, 
+        18, 19, 20, 21, 22, 23, 24, 25, 
+        26, 27, 28, 29, 30, 31, 32, 33, 
+        34, 35, 36, 37, 38, 39, 40, 41, 
+        42, 43, 44, 45, 46, 47, 48, 49, 
+        50, 51, 52, 53, 54, 55, 56, 57, 
+        58, 59, 60, 61, 62, 63, 64, 65, 
+        66, 67, 68, 69, 70, 71, 72, 73, 
+        74, 75, 76, 77, 78, 79, 80, 81, 
+        82, 83, 84, 85, 86, 87, 88, 89, 
+        90, 91, 92, 93, 94, 95
+    
+    };
 
 
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex
     const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
-    //const GLuint textureFloats = 2;     // floats for texture mapping
+    const GLuint textureFloats = 2;     // floats for texture mapping
 
     glGenVertexArrays(1, &mesh.vao);            // generate VAO
     glBindVertexArray(mesh.vao);                // binds VAO
@@ -501,8 +656,8 @@ void createCylinderMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, 
     glEnableVertexAttribArray(1);
 
     // vertex attibute pointer for texture
-    //glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float)* (vertexFloats + colorFloats)));
-    //glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float)* (vertexFloats + colorFloats)));
+    glEnableVertexAttribArray(2);
 }
 
 // render the cube
@@ -651,6 +806,10 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     if (WIREFRAME_MODE == true) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
+
+    // bind textures on corresponding texture units
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Draw the triangle.
     glDrawElements(GL_TRIANGLES, mesh.nVertices, GL_UNSIGNED_SHORT, NULL); // Draws the triangle
