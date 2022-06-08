@@ -1,9 +1,9 @@
 /*
  * Class: CS-330-T5621 Computer Graphics and Visualization
  * Instructor: Malcolm Wabara, M.S
- * Assignment: 4-5 Milestone: Interactivity in a 3D Scene
+ * Assignment: 5-5 Milestone: Texturing Objects in a 3D Scene
  * Student: Preston Burkhardt
- * Date: 29 May 2022
+ * Date: 05 June 2022
  */
 
 #include <GL/glew.h>
@@ -41,7 +41,7 @@ GLuint textureID3;
 // constants for windown attributes
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
-const char* const WINDOW_TITLE = "4-5 Milestone: Interactivity in a 3D Scene";
+const char* const WINDOW_TITLE = "5-5 Milestone: Texturing Objects in a 3D Scene";
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camFrontTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
