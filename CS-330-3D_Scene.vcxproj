@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CS-330-3D_Pyramid\Camera.h" />
+    <ClInclude Include="Cube.h" />
     <ClInclude Include="include\stb_image.h" />
     <ClInclude Include="Mesh.h" />
   </ItemGroup>

@@ -24,13 +24,14 @@ class Mesh {
         GLuint getMeshNVertices() { return this->shapeMesh.nVertices; }
 
     protected:
-        
-
-    private:
         GLMesh shapeMesh;
         vector<GLshort> vertsVector;
         vector<GLfloat> verticesVector;
-        void buildMesh(GLMesh &mesh, vector<GLfloat>&vertsVector, vector<GLshort>& verticesVector);
+        void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>& verticesVector);
+
+    private:
+
+
 
 };
 
