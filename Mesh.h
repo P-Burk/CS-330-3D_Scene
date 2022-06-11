@@ -16,24 +16,23 @@ struct GLMesh {
 };
 
 class Mesh {
-private:
-    GLMesh shapeMesh;
-    vector<GLfloat> verticesVector;
-    vector<GLshort> vertsVector;
+    public:
+        Mesh();
+        GLMesh getShapeMesh() { return this->shapeMesh; }
+        GLuint getMeshVAO() { return this->shapeMesh.vao; }
+        GLuint getMeshVBO(int VBOindex) { return this->shapeMesh.vbo[VBOindex]; }
+        GLuint getMeshNVertices() { return this->shapeMesh.nVertices; }
 
-protected:
+    protected:
 
 
-
-public:
-    GLuint getMeshVAO() { return this->shapeMesh.vao;}
-    GLuint getMeshVBO(int VBOindex) { return this->shapeMesh.vbo[VBOindex]; }
-    GLuint getMeshNVertices() { return this->shapeMesh.nVertices; }
-
+    private:
+        GLMesh shapeMesh;
+        vector<GLshort> vertsVector;
+        vector<GLfloat> verticesVector;
+        void buildMesh();
 
 };
-
-
 
 
 #endif

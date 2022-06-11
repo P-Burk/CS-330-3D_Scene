@@ -7,7 +7,7 @@
 
 using namespace std;
 
-vector<GLfloat> verticesVector = {
+vector<GLfloat> vertsVector = {
     // CUBE ////////////////////////////////////////////////////////////////////////////////////
      // front 1
      -0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f, 1.0f,     0.2f, 0.5f,  // V0  // 0
@@ -70,3 +70,54 @@ vector<GLfloat> verticesVector = {
      0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2   // 35
 };
 
+vector<GLshort> verticesVector = {
+    // CUBE //////////////////////////////
+    0, 1, 2,       // FT1
+    3, 4, 5,       // FT2
+    6, 7, 8,       // BaT1
+    9, 10, 11,     // BaT2
+    12, 13, 14,    // LT1
+    15, 16, 17,    // LT2
+    18, 19, 20,    // RT1
+    21, 22, 23,    // RT2
+    24, 25, 26,    // TT1
+    27, 28, 29,    // TT2
+    30, 31, 32,    // BoT1
+    33, 34, 35     // BoT2
+};
+
+Mesh::Mesh() {
+    buildMesh();
+}
+
+void Mesh::buildMesh() {
+    // creates vertex attribute pointer
+    const GLuint vertexFloats = 3;      // number of coordinates per vertex
+    const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
+    const GLuint textureFloats = 2;     // floats for texture mapping
+
+    glGenVertexArrays(1, &this->shapeMesh.vao);            // generate VAO
+    glBindVertexArray(this->shapeMesh.vao);                // binds VAO
+
+    glGenBuffers(2, this->shapeMesh.vbo);                  // generates two buffers
+    glBindBuffer(GL_ARRAY_BUFFER, this->shapeMesh.vbo[0]); // binds VBOs
+    glBufferData(GL_ARRAY_BUFFER, this->vertsVector.size() * sizeof(GLfloat), &this->vertsVector[0], GL_STATIC_DRAW);    // send vertix coordinates to GPU
+
+    this->shapeMesh.nVertices = this->verticesVector.size();
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->shapeMesh.vbo[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, verticesVector.size() * sizeof(GLshort), &this->verticesVector[0], GL_STATIC_DRAW);
+
+    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats + textureFloats);
+
+    // vertex attribute pointer for position
+    glVertexAttribPointer(0, vertexFloats, GL_FLOAT, GL_FALSE, strideLen, 0);
+    glEnableVertexAttribArray(0);
+
+    // vertex attribute pointer for color
+    glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
+    glEnableVertexAttribArray(1);
+
+    // vertex attibute pointer for texture
+    glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float) * (vertexFloats + colorFloats)));
+    glEnableVertexAttribArray(2);
+}
