@@ -81,6 +81,8 @@ void flipImageVertically(unsigned char* image, int width, int height, int channe
 bool createTexture(const char* filename, GLuint& textureId);
 void destroyTexture(GLuint textureId);
 
+void buildMesh(GLMesh& mesh);
+
 
 // vertex shader source code
 const char* vertexShaderSource = "#version 440 core\n"
@@ -1105,4 +1107,36 @@ bool createTexture(const char* filename, GLuint& textureId) {
 // destroys texture
 void destroyTexture(GLuint textureId) {
     glGenTextures(1, &textureId);
+}
+
+void buildMesh(GLMesh& mesh) {
+    // creates vertex attribute pointer
+    const GLuint vertexFloats = 3;      // number of coordinates per vertex
+    const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
+    const GLuint textureFloats = 2;     // floats for texture mapping
+
+    glGenVertexArrays(1, &mesh.vao);            // generate VAO
+    glBindVertexArray(mesh.vao);                // binds VAO
+
+    glGenBuffers(2, mesh.vbo);                  // generates two buffers
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo[0]); // binds VBOs
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);    // send vertix coordinates to GPU
+
+    mesh.nVertices = sizeof(vertices) / sizeof(vertices[0]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats + textureFloats);
+
+    // vertex attribute pointer for position
+    glVertexAttribPointer(0, vertexFloats, GL_FLOAT, GL_FALSE, strideLen, 0);
+    glEnableVertexAttribArray(0);
+
+    // vertex attribute pointer for color
+    glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
+    glEnableVertexAttribArray(1);
+
+    // vertex attibute pointer for texture
+    glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float) * (vertexFloats + colorFloats)));
+    glEnableVertexAttribArray(2);
 }
