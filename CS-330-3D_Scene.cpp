@@ -19,18 +19,21 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Camera.h"
+#include "Mesh.h"
 
 using namespace std;
 
+/*
 // used for storage of the IDs for the VAO and VBO
 struct GLMesh {
     GLuint vao;         // Handle for the vertex array object
     GLuint vbo[2];      // Handle for the vertex buffer object
     GLuint nVertices;   // Number of vertices of the mesh
 };
+*/
 
 // initialize mesh and shader program variables
-GLMesh cubeMesh;
+//GLMesh cubeMesh;
 GLMesh cylinderMesh;
 GLMesh planeMesh;
 GLuint gProgramID;
@@ -65,7 +68,7 @@ bool perspectiveSwitch = true;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen);
-void createCylinderMesh(GLMesh& mesh);
+//void createCylinderMesh(GLMesh& mesh);
 void createPlaneMesh(GLMesh& mesh);
 void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
 void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
@@ -80,9 +83,6 @@ void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, in
 void flipImageVertically(unsigned char* image, int width, int height, int channels);
 bool createTexture(const char* filename, GLuint& textureId);
 void destroyTexture(GLuint textureId);
-
-void buildMesh(GLMesh& mesh);
-
 
 // vertex shader source code
 const char* vertexShaderSource = "#version 440 core\n"
@@ -150,10 +150,13 @@ int main() {
         return false;
     }
 
+    // initialize AFTER glewExperimental to avoid error "Access violation.... 0X00000000"
+    Mesh cubeMeshTest;
+
 
     // create mesh and shader program
-    createCubeMesh(cubeMesh, 0, 0, 0, 1);
-    createCylinderMesh(cylinderMesh);
+    //createCubeMesh(cubeMesh, 0, 0, 0, 1);
+    //createCylinderMesh(cylinderMesh);
     createPlaneMesh(planeMesh);
     createShaderProgram(vertexShaderSource, fragmentShaderSource, gProgramID);
 
@@ -194,8 +197,9 @@ int main() {
 
         processInput(window);                       // process input
 
-        renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID2);
-        renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID3);
+        //renderCubeMesh(cubeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID2);
+        //renderCylinderMesh(cylinderMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID3);
+        renderCubeMesh(cubeMeshTest.getShapeMesh(), gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID2);
         renderPlaneMesh(planeMesh, gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
@@ -242,6 +246,7 @@ void processInput(GLFWwindow* window) {
     glfwSetKeyCallback(window, perspectiveToggle);
 }
 
+
 void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfixed edgeLen) {
     // cube ///////////////////////////////////////////////////////////////////////
     //    v4----- v5
@@ -251,89 +256,6 @@ void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfi
     //  | |v7---|-|v6
     //  |/      |/
     //  v3------v2
-
-    /*
-    // Position and Color data
-    GLfloat verts[] = {
-        // CUBE ////////////////////////////////////////////////////////////////////////////////////
-        // front 1
-        -0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f, 1.0f,     0.2f, 0.5f,  // V0  // 0
-         0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1  // 1
-        -0.5f, -0.5f,  0.5f,    1.0f, 1.0f, 1.0f, 1.0f,     0.2f, 0.2f,  // V3  // 2
-
-        // front 2
-         0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2  // 3
-         0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1  // 4
-        -0.5f, -0.5f,  0.5f,    1.0f, 1.0f, 1.0f, 1.0f,     0.2f, 0.2f,  // V3  // 5
-
-        // back 1
-        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     0.8f, 1.0f,  // V6   // 6
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.8f, 0.7f,  // V5   // 7
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.2f, 1.0f,  // V7   // 8
-
-        // back 2
-       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.2f, 0.7f,  // V4   // 9
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.8f, 0.7f,  // V5   // 10
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.2f, 1.0f,  // V7   // 11
-
-        // left 1
-       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.0f, 0.5f,  // V4   // 12
-       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.2f, 0.5f,  // V0   // 13
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.2f,  // V7   // 14
-
-        // left 2
-       -0.5f, -0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.2f, 0.2f,  // V3   // 15
-       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.2f, 0.5f,  // V0   // 16
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.0f, 0.2f,  // V7   // 17
-
-        // right 1
-        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1   // 18
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.5f,  // V5   // 19
-        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2   // 20
-
-        // right 2
-        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     1.0f, 0.2f,  // V6   // 21
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.5f,  // V5   // 22
-        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2   // 23
-
-        // top 1
-       -0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f, 1.0f,     0.2f, 0.5f,  // V0   // 24
-       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.2f, 0.7f,  // V4   // 25
-        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1   // 26
-
-        // top 2
-        0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 1.0f, 1.0f,     0.8f, 0.7f,  // V5   // 27
-       -0.5f,  0.5f, -0.5f,     1.0f, 1.0f, 0.0f, 1.0f,     0.2f, 0.7f,  // V4   // 28
-        0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f, 1.0f,     0.8f, 0.5f,  // V1   // 29
-
-        // bottom 1
-       -0.5f, -0.5f,  0.5f,     1.0f, 1.0f, 1.0f, 1.0f,     0.2f, 0.2f,  // V3   // 30
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.2f, 0.0f,  // V7   // 31
-        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2   // 32
-
-        // bottom 2
-        0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.0f,  // V6   // 33
-       -0.5f, -0.5f, -0.5f,     0.5f, 1.0f, 1.0f, 1.0f,     0.2f, 0.0f,  // V7   // 34
-        0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f, 1.0f,     0.8f, 0.2f,  // V2   // 35
-    };
-
-    // Creates a buffer object for the indices
-    GLshort vertices[] = {
-        // CUBE //////////////////////////////
-        0, 1, 2,       // FT1
-        3, 4, 5,       // FT2
-        6, 7, 8,       // BaT1
-        9, 10, 11,     // BaT2
-        12, 13, 14,    // LT1
-        15, 16, 17,    // LT2
-        18, 19, 20,    // RT1
-        21, 22, 23,    // RT2
-        24, 25, 26,    // TT1
-        27, 28, 29,    // TT2
-        30, 31, 32,    // BoT1
-        33, 34, 35     // BoT2
-    };
-    */
 
     vector<GLfloat> vertsVector = {
         // CUBE ////////////////////////////////////////////////////////////////////////////////////
@@ -445,6 +367,8 @@ void createCubeMesh(GLMesh& mesh, GLfloat xPos, GLfloat yPos, GLfloat zPos, GLfi
     glEnableVertexAttribArray(2);
 }
 
+
+/*
 // creates cylinder
 void createCylinderMesh(GLMesh& mesh) {
 
@@ -749,6 +673,7 @@ void createCylinderMesh(GLMesh& mesh) {
     glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float)* (vertexFloats + colorFloats)));
     glEnableVertexAttribArray(2);
 }
+*/
 
 // render the cube
 void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID) {
@@ -1190,36 +1115,3 @@ void destroyTexture(GLuint textureId) {
     glGenTextures(1, &textureId);
 }
 
-/*
-void buildMesh(GLMesh& mesh) {
-    // creates vertex attribute pointer
-    const GLuint vertexFloats = 3;      // number of coordinates per vertex
-    const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
-    const GLuint textureFloats = 2;     // floats for texture mapping
-
-    glGenVertexArrays(1, &mesh.vao);            // generate VAO
-    glBindVertexArray(mesh.vao);                // binds VAO
-
-    glGenBuffers(2, mesh.vbo);                  // generates two buffers
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo[0]); // binds VBOs
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);    // send vertix coordinates to GPU
-
-    mesh.nVertices = sizeof(vertices) / sizeof(vertices[0]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo[1]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats + textureFloats);
-
-    // vertex attribute pointer for position
-    glVertexAttribPointer(0, vertexFloats, GL_FLOAT, GL_FALSE, strideLen, 0);
-    glEnableVertexAttribArray(0);
-
-    // vertex attribute pointer for color
-    glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
-    glEnableVertexAttribArray(1);
-
-    // vertex attibute pointer for texture
-    glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float) * (vertexFloats + colorFloats)));
-    glEnableVertexAttribArray(2);
-}
-*/
