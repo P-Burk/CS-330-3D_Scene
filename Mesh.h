@@ -22,6 +22,7 @@ class Mesh {
         GLuint getMeshVAO() { return this->shapeMesh.vao; }
         GLuint getMeshVBO(int VBOindex) { return this->shapeMesh.vbo[VBOindex]; }
         GLuint getMeshNVertices() { return this->shapeMesh.nVertices; }
+        void destoryMesh();
 
     protected:
         GLMesh shapeMesh;

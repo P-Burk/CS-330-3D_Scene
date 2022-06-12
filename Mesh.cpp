@@ -41,3 +41,8 @@ void Mesh::buildMesh(GLMesh &mesh, vector<GLfloat>& vertsVector, vector<GLshort>
     glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float) * (vertexFloats + colorFloats)));
     glEnableVertexAttribArray(2);
 }
+
+void Mesh::destoryMesh() {
+    glDeleteVertexArrays(1, &this->shapeMesh.vao);
+    glDeleteBuffers(2, this->shapeMesh.vbo);
+}

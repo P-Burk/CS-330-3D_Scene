@@ -62,7 +62,6 @@ void processInput(GLFWwindow* window);
 void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
 void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
 void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
-void destoryMesh(GLMesh& mesh);
 bool createShaderProgram(const char* vtxShaderSource, const char* fragShaderSource, GLuint& programId);
 void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
@@ -392,12 +391,6 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
     //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
-}
-
-// used for clearing the mesh
-void destoryMesh(GLMesh& mesh) {
-    glDeleteVertexArrays(1, &mesh.vao);
-    glDeleteBuffers(2, mesh.vbo);
 }
 
 // creates the shader program
