@@ -11,7 +11,7 @@ using namespace std;
 
 class Plane : public Mesh {
 	public:
-		Plane() { buildMesh(this->shapeMesh, this->vertsVector, this->verticesVector); };
+		Plane() { buildMesh(this->shapeMesh, this->vertsVector); };
 
 	protected:
 
@@ -25,10 +25,13 @@ class Plane : public Mesh {
 
         // Position and Color data
         vector<GLfloat> vertsVector = {
-            -5.0f, -1.3f,  5.0f,    1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 1.0f, // V0
-             5.0f, -1.3f,  5.0f,    1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // V1
-             5.0f, -1.3f, -5.0f,    1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // V2
-            -5.0f, -1.3f, -5.0f,    1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 0.0f  // V3
+            -5.0f, -1.3f, -5.0f,    0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // V0
+             5.0f, -1.3f, -5.0f,    0.0f, 1.0f, 0.0f,   1.0f, 1.0f, // V1
+            -5.0f, -1.3f,  5.0f,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f, // V3
+
+             5.0f, -1.3f,  5.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // V2
+             5.0f, -1.3f, -5.0f,    0.0f, 1.0f, 0.0f,   1.0f, 1.0f, // V1
+            -5.0f, -1.3f,  5.0f,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f  // V3
         };
 
         // Creates a buffer object for the indices

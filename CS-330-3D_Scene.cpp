@@ -51,7 +51,7 @@ const int WINDOW_HEIGHT = 600;
 const char* const WINDOW_TITLE = "6-5 Milestone: Lighting Complex Objects";
 //TODO: will need to bind specular and diffuse texture for each texture used in the scene
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
-const char* camFrontTextureFile = "resources/textures/Full_camera.png";
+const char* camBodyTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
@@ -74,6 +74,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void renderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLFWwindow* window, const bool WIREFRAME_MODE);
 void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
+void renderPlaneMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
@@ -146,12 +147,12 @@ int main() {
         glm::vec3(  2.0f,  0.5f,  0.0f)
     };
 
-    unsigned int cameraBodyDiffuseMap = loadTexture("resources/textures/Full_camera.png");
-    unsigned int cameraBodySpecularMap = loadTexture("resources/textures/Full_camera.png");
-    unsigned int cameraLensDiffuseMap = loadTexture("resources/textures/Full_lens.png");
-    unsigned int cameraLensSpecularMap = loadTexture("resources/textures/Full_lens.png");
-    unsigned int planeDiffuseMap = loadTexture("resources/textures/dark_wood.png");
-    unsigned int planeSpecularMap = loadTexture("resources/textures/dark_wood.png");
+    unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
+    unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
+    unsigned int cameraLensDiffuseMap = loadTexture(camLensTextureFile);
+    unsigned int cameraLensSpecularMap = loadTexture(camLensTextureFile);
+    unsigned int planeDiffuseMap = loadTexture(woodTextureFile);
+    unsigned int planeSpecularMap = loadTexture(woodTextureFile);
 
     Shader lightingShader("include/multiple_lights.vs", "include/multiple_lights.fs");
     Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
@@ -165,8 +166,8 @@ int main() {
         return EXIT_FAILURE;
     }
     // Load texture
-    if (!createTexture(camFrontTextureFile, textureID2)) {
-        cout << "Failed to load texture " << camFrontTextureFile << endl;
+    if (!createTexture(camBodyTextureFile, textureID2)) {
+        cout << "Failed to load texture " << camBodyTextureFile << endl;
         return EXIT_FAILURE;
     }
     // Load texture
@@ -206,7 +207,7 @@ int main() {
         //render shapes
         //renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), window, WIREFRAME_MODE, perspectiveSwitch);
         renderCubeMesh(cubeMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID2, window, WIREFRAME_MODE, perspectiveSwitch);
-        //renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), window, WIREFRAME_MODE, perspectiveSwitch);
+        renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID1, window, WIREFRAME_MODE, perspectiveSwitch);
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
         glfwPollEvents();
@@ -407,63 +408,6 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
-// creates the shader program
-bool createShaderProgram(const char* vtxShaderSource, const char* fragShaderSource, GLuint& programID) {
-
-    // compilation and linkage error reporting
-    int successNum = 0;
-    char infoLog[512];
-
-    // create shader program object
-    programID = glCreateProgram();
-
-
-    GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);       // create vertex shader object
-    GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);   // create fragment shader object
-
-    glShaderSource(vertexShaderID, 1, &vtxShaderSource, NULL);      // get the shader source for vertex fragment
-    glShaderSource(fragmentShaderID, 1, &fragShaderSource, NULL);   // get the shader source for fragment shader
-
-    glCompileShader(vertexShaderID);                                // compile vertex shader
-    glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &successNum);  // check for and print errors
-    if (!successNum) {
-        glGetShaderInfoLog(vertexShaderID, 512, NULL, infoLog);
-        cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << endl;
-        return false;
-    }
-
-    glCompileShader(fragmentShaderID);                              // compile fragment shader
-    glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &successNum);// check for and print errors
-    if (!successNum) {
-        glGetShaderInfoLog(fragmentShaderID, sizeof(infoLog), NULL, infoLog);
-        cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << endl;
-        return false;
-    }
-
-    // attach compiled shaders to their respective shader programs
-    glAttachShader(programID, vertexShaderID);
-    glAttachShader(programID, fragmentShaderID);
-
-
-    glLinkProgram(programID);                                       // links the shader program
-    glGetProgramiv(programID, GL_LINK_STATUS, &successNum);         // check for and print errors
-    if (!successNum) {
-        glGetProgramInfoLog(programID, sizeof(infoLog), NULL, infoLog);
-        cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << endl;
-        return false;
-    }
-
-    glUseProgram(programID);
-
-    return true;
-
-}
-
-// clears the shader program
-void destroyShaderProgram(GLuint programID) {
-    glDeleteProgram(programID);
-}
-
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos) {
     if (firstMouse == true) {
         lastX = xPos;
@@ -495,19 +439,27 @@ void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, in
         perspectiveSwitch = !perspectiveSwitch;
 }
 
-void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID) {
+void renderPlaneMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
+    
+    // enable z-depth buffer
+    glEnable(GL_DEPTH_TEST);
+
+    // Activate the VBOs contained within the mesh's VAO.
+    glBindVertexArray(mesh.vao);
+
+    //////////// SHAPE DRAW FUNCTIONS ////////////
+    glUseProgram(shapeProgramID);
 
     // 1. scales object
     glm::mat4 scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
 
     // 2. rotates object 
     glm::mat4 rotation = glm::mat4(1.0f);
-
     // for no rotation, set radians to 0 and X, Y, and Z values to 1
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.5f));
+    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = scale * rotation * translation;
@@ -518,32 +470,24 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, c
 
     // Projection MAtrix
     glm::mat4 projection;
-    if (perspective) {
+    if (perspectiveSwitch) {
         projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
-    }
-    else {
+    } else {
         projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
     }
 
     // retrieves and passes transformation matrices to shader program
-    GLint modelLoc = glGetUniformLocation(programID, "model");
+    GLint modelLoc = glGetUniformLocation(shapeProgramID, "model");
+    GLint viewLoc = glGetUniformLocation(shapeProgramID, "view");
+    GLint projLoc = glGetUniformLocation(shapeProgramID, "projection");
+
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-    GLint viewLoc = glGetUniformLocation(programID, "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-    GLint projLoc = glGetUniformLocation(programID, "projection");
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    // Set the shader to be used.
-    glUseProgram(programID);
+    GLint UVScaleLoc = glGetUniformLocation(shapeProgramID, "uvScale");
+    glUniform2fv(UVScaleLoc, 1, glm::value_ptr(gUVScale));
 
-    // Sends transform information to the Vertex shader
-    GLuint transformLocation = glGetUniformLocation(programID, "shaderTransform");
-    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(model));
-
-    // Activate the VBOs contained within the mesh's VAO.
-    glBindVertexArray(mesh.vao);
 
     // wireframe mode
     if (WIREFRAME_MODE == true) {
@@ -552,13 +496,18 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, c
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID1);
+    glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Draw the triangle.
-    glDrawElements(GL_TRIANGLES, mesh.nVertices, GL_UNSIGNED_SHORT, NULL); // Draws the triangle
+    glDrawArrays(GL_TRIANGLES, 0, mesh.nVertices); // Draws the triangle
 
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
+    glUseProgram(0);
+
+    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
+    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
+    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 
