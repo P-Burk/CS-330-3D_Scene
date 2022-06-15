@@ -10,39 +10,70 @@ using namespace std;
 
 Mesh::Mesh() {}
 
-void Mesh::buildMesh(GLMesh &mesh, vector<GLfloat>& vertsVector, vector<GLshort>& verticesVector) {
+void Mesh::buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>& verticesVector) {
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex
-    const GLuint colorFloats = 4;       // floats that represent color (r, g, b, a)
+    const GLuint normalsFloats = 3;       // floats that represent color (r, g, b, a)
     const GLuint textureFloats = 2;     // floats for texture mapping
+
+    mesh.nVertices = verticesVector.size() * (vertexFloats + normalsFloats + textureFloats);
 
     glGenVertexArrays(1, &mesh.vao);            // generate VAO
     glBindVertexArray(mesh.vao);                // binds VAO
 
-    glGenBuffers(2, mesh.vbo);                  // generates two buffers
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo[0]); // binds VBOs
+    glGenBuffers(1, &mesh.vbo);                  // generates two buffers
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo); // binds VBOs
     glBufferData(GL_ARRAY_BUFFER, vertsVector.size() * sizeof(GLfloat), &vertsVector[0], GL_STATIC_DRAW);    // send vertix coordinates to GPU
 
-    mesh.nVertices = verticesVector.size();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo[1]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, verticesVector.size() * sizeof(GLshort), &verticesVector[0], GL_STATIC_DRAW);
+    /*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, verticesVector.size() * sizeof(GLshort), &verticesVector[0], GL_STATIC_DRAW);*/
 
-    GLint strideLen = sizeof(float) * (vertexFloats + colorFloats + textureFloats);
+    GLint strideLen = sizeof(float) * (vertexFloats + normalsFloats + textureFloats);
 
     // vertex attribute pointer for position
     glVertexAttribPointer(0, vertexFloats, GL_FLOAT, GL_FALSE, strideLen, 0);
     glEnableVertexAttribArray(0);
 
     // vertex attribute pointer for color
-    glVertexAttribPointer(1, colorFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
+    glVertexAttribPointer(1, normalsFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
     glEnableVertexAttribArray(1);
 
     // vertex attibute pointer for texture
-    glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float) * (vertexFloats + colorFloats)));
+    glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float) * (vertexFloats + normalsFloats)));
+    glEnableVertexAttribArray(2);
+}
+
+void Mesh::buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector) {
+    // creates vertex attribute pointer
+    const GLuint vertexFloats = 3;      // number of coordinates per vertex
+    const GLuint normalsFloats = 3;       // floats that represent color (r, g, b, a)
+    const GLuint textureFloats = 2;     // floats for texture mapping
+
+    mesh.nVertices = vertsVector.size() / (vertexFloats + normalsFloats + textureFloats);
+
+    glGenVertexArrays(1, &mesh.vao);            // generate VAO
+    glBindVertexArray(mesh.vao);                // binds VAO
+
+    glGenBuffers(1, &mesh.vbo);                  // generates two buffers
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo); // binds VBOs
+    glBufferData(GL_ARRAY_BUFFER, vertsVector.size() * sizeof(GLfloat), &vertsVector[0], GL_STATIC_DRAW);    // send vertix coordinates to GPU
+
+    GLint strideLen = sizeof(float) * (vertexFloats + normalsFloats + textureFloats);
+
+    // vertex attribute pointer for position
+    glVertexAttribPointer(0, vertexFloats, GL_FLOAT, GL_FALSE, strideLen, 0);
+    glEnableVertexAttribArray(0);
+
+    // vertex attribute pointer for color
+    glVertexAttribPointer(1, normalsFloats, GL_FLOAT, GL_FALSE, strideLen, (char*)(sizeof(float) * vertexFloats));
+    glEnableVertexAttribArray(1);
+
+    // vertex attibute pointer for texture
+    glVertexAttribPointer(2, textureFloats, GL_FLOAT, GL_FALSE, strideLen, (void*)(sizeof(float) * (vertexFloats + normalsFloats)));
     glEnableVertexAttribArray(2);
 }
 
 void Mesh::destoryMesh() {
     glDeleteVertexArrays(1, &this->shapeMesh.vao);
-    glDeleteBuffers(2, this->shapeMesh.vbo);
+    glDeleteBuffers(1, &this->shapeMesh.vbo);
 }
