@@ -18,25 +18,38 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Shader.h"
 #include "Camera.h"
 #include "Cube.h"
 #include "Cylinder.h"
 #include "Plane.h"
+#include "Lights.h"
 
 
 using namespace std;
 
+/*Shader program Macro*/
+#ifndef GLSL
+#define GLSL(Version, Source) "#version " #Version " core \n" #Source
+#endif
+
 
 // initialize mesh and shader program variables
-GLuint gProgramID;
+GLuint shapeProgramID;
+GLuint lampProgramID;
+GLuint shapeProgramID2;
+GLuint lampProgramID2;
 GLuint textureID1;
 GLuint textureID2;
 GLuint textureID3;
+glm::vec2 gUVScale(5.0f, 5.0f);
+GLint gTexWrapMode = GL_REPEAT;
 
 // constants for windown attributes
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
-const char* const WINDOW_TITLE = "5-5 Milestone: Texturing Objects in a 3D Scene";
+const char* const WINDOW_TITLE = "6-5 Milestone: Lighting Complex Objects";
+//TODO: will need to bind specular and diffuse texture for each texture used in the scene
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camFrontTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
@@ -46,8 +59,8 @@ float ROTATE_X = 1.0f;
 float ROTATE_Y = 1.0f;
 float ROTATE_Z = 1.0f;
 
-// camera and timing
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+// CAMERA VARIABLES
+Camera camera(glm::vec3(0.0f, 0.0f, 6.0f));
 float lastX = WINDOW_WIDTH / 2.0f;
 float lastY = WINDOW_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -55,14 +68,12 @@ float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
 // perspective switch
-bool perspectiveSwitch = true;
+bool perspectiveSwitch = false;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
-void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
-void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
-void renderPlaneMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID);
-bool createShaderProgram(const char* vtxShaderSource, const char* fragShaderSource, GLuint& programId);
+void renderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLFWwindow* window, const bool WIREFRAME_MODE);
+void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
@@ -71,33 +82,9 @@ void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, in
 void flipImageVertically(unsigned char* image, int width, int height, int channels);
 bool createTexture(const char* filename, GLuint& textureId);
 void destroyTexture(GLuint textureId);
+unsigned int loadTexture(char const* path);
 
-// vertex shader source code
-const char* vertexShaderSource = "#version 440 core\n"
-"layout (location = 0) in vec3 position;\n"
-"layout (location = 2) in vec2 textureCoordinate;\n"
-"out vec2 vertexTextureCoordinate;\n"
 
-"uniform mat4 model;\n"
-"uniform mat4 view;\n"
-"uniform mat4 projection;\n"
-
-"void main()\n"
-"{\n"
-"   gl_Position = projection * view * model * vec4(position, 1.0f);\n"    // transforms vertex data 
-"   vertexTextureCoordinate = textureCoordinate;\n"
-"}\n\0";
-
-// fragment shader source code
-const char* fragmentShaderSource = "#version 440 core\n"
-"in vec2 vertexTextureCoordinate;\n"
-"out vec4 fragmentColor;\n"
-"uniform sampler2D TEXTURE;\n"
-
-"void main()\n"
-"{\n"
-"   fragmentColor = texture(TEXTURE, vertexTextureCoordinate);\n"
-"}\n\0";
 
 
 int main() {
@@ -143,8 +130,34 @@ int main() {
     Cylinder cylinderMesh;
     Plane planeMesh;
 
-    // create mesh and shader program
-    createShaderProgram(vertexShaderSource, fragmentShaderSource, gProgramID);
+    /****** CODE CITATION **************************************************************
+    * Title: Learn OpenGL: multiple_lights_exercise1.cpp
+    * Author: Joey de Vries
+    * Date Accessed: 11 June 2022
+    * Code Version: N/A
+    * Availability: https://learnopengl.com/code_viewer_gh.php?code=src/2.lighting/6.multiple_lights/multiple_lights.cpp
+    ************************************************************************************/
+
+    //positions of the point lights
+    vector<glm::vec3> pointLightPositions = {
+        glm::vec3( -4.0f,  3.5f,  0.0f),
+        glm::vec3(  4.0f,  1.5f,  0.0f),
+        glm::vec3( -1.0f,  0.8f, -3.0f),
+        glm::vec3(  2.0f,  0.5f,  0.0f)
+    };
+
+    unsigned int cameraBodyDiffuseMap = loadTexture("resources/textures/Full_camera.png");
+    unsigned int cameraBodySpecularMap = loadTexture("resources/textures/Full_camera.png");
+    unsigned int cameraLensDiffuseMap = loadTexture("resources/textures/Full_lens.png");
+    unsigned int cameraLensSpecularMap = loadTexture("resources/textures/Full_lens.png");
+    unsigned int planeDiffuseMap = loadTexture("resources/textures/dark_wood.png");
+    unsigned int planeSpecularMap = loadTexture("resources/textures/dark_wood.png");
+
+    Shader lightingShader("include/multiple_lights.vs", "include/multiple_lights.fs");
+    Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
+
+    Lights lights(lightingShader, lightCubeShader, camera, cameraBodyDiffuseMap, cameraBodySpecularMap, cameraLensDiffuseMap, cameraLensSpecularMap,
+                  planeDiffuseMap, planeSpecularMap, pointLightPositions);
 
     // Load texture
     if (!createTexture(woodTextureFile, textureID1)) {
@@ -163,15 +176,15 @@ int main() {
     }
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-    glUseProgram(gProgramID);
     // We set the texture as texture unit 0
-    glUniform1i(glGetUniformLocation(gProgramID, "TEXTURE"), 0);
+    glUniform1i(glGetUniformLocation(shapeProgramID, "TEXTURE"), 0);
 
     // while loop to continually render until user closes window
     while (!glfwWindowShouldClose(window)) {
 
         // enable z-depth buffer
         glEnable(GL_DEPTH_TEST);
+
         // clear the background frame and z-depth buffer
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -181,11 +194,19 @@ int main() {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        processInput(window);                       // process input
+        // process input
+        processInput(window);  
 
-        renderCylinderMesh(cylinderMesh.getShapeMesh(), gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID3);
-        renderCubeMesh(cubeMesh.getShapeMesh(), gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID2);
-        renderPlaneMesh(planeMesh.getShapeMesh(), gProgramID, window, WIREFRAME_MODE, perspectiveSwitch, textureID1);
+        // create projection, view, and model matrices, then render the lights
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 model = glm::mat4(1.0f);
+        lights.renderLights(pointLightPositions, projection, view, model);
+
+        //render shapes
+        //renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), window, WIREFRAME_MODE, perspectiveSwitch);
+        renderCubeMesh(cubeMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID2, window, WIREFRAME_MODE, perspectiveSwitch);
+        //renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), window, WIREFRAME_MODE, perspectiveSwitch);
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
         glfwPollEvents();
@@ -193,7 +214,9 @@ int main() {
 
 
     // EXIT CODE /////////////////////////////////////////////
-    destroyShaderProgram(gProgramID);
+    cylinderMesh.destoryMesh();
+    cubeMesh.destoryMesh();
+    planeMesh.destoryMesh();
     glfwTerminate();
     return 0;
 }
@@ -232,26 +255,24 @@ void processInput(GLFWwindow* window) {
 }
 
 // render the cube
-void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID) {
-    /*
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
+void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
+    
     // enable z-depth buffer
     glEnable(GL_DEPTH_TEST);
 
-    // clear the background frame and z-depth buffer
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    */
+    // Activate the VBOs contained within the mesh's VAO.
+    glBindVertexArray(mesh.vao);
+
+    //////////// SHAPE DRAW FUNCTIONS ////////////
+    glUseProgram(shapeProgramID);
 
     // 1. scales object
     glm::mat4 scale = glm::scale(glm::vec3(3.3f, 2.5f, 1.0f));
 
     // 2. rotates object 
     glm::mat4 rotation = glm::mat4(1.0f);
-
     // for no rotation, set radians to 0 and X, Y, and Z values to 1
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
-    //rotation = glm::rotate(rotation, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
     // 3. places object at origin
     glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -264,9 +285,8 @@ void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, co
     glm::mat4 view = camera.GetViewMatrix();
 
     // Projection MAtrix
-    //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
     glm::mat4 projection;
-    if (perspective) {
+    if (perspectiveSwitch) {
         projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
     }
     else {
@@ -274,24 +294,17 @@ void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, co
     }
 
     // retrieves and passes transformation matrices to shader program
-    GLint modelLoc = glGetUniformLocation(programID, "model");
+    GLint modelLoc = glGetUniformLocation(shapeProgramID, "model");
+    GLint viewLoc = glGetUniformLocation(shapeProgramID, "view");
+    GLint projLoc = glGetUniformLocation(shapeProgramID, "projection");
+
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-    GLint viewLoc = glGetUniformLocation(programID, "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-    GLint projLoc = glGetUniformLocation(programID, "projection");
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    // Set the shader to be used.
-    glUseProgram(programID);
+    GLint UVScaleLoc = glGetUniformLocation(shapeProgramID, "uvScale");
+    glUniform2fv(UVScaleLoc, 1, glm::value_ptr(gUVScale));
 
-    // Sends transform information to the Vertex shader
-    GLuint transformLocation = glGetUniformLocation(programID, "shaderTransform");
-    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(model));
-
-    // Activate the VBOs contained within the mesh's VAO.
-    glBindVertexArray(mesh.vao);
 
     // wireframe mode
     if (WIREFRAME_MODE == true) {
@@ -303,10 +316,11 @@ void renderCubeMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, co
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Draw the triangle.
-    glDrawElements(GL_TRIANGLES, mesh.nVertices, GL_UNSIGNED_SHORT, NULL); // Draws the triangle
+    glDrawArrays(GL_TRIANGLES, 0, mesh.nVertices); // Draws the triangle
 
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
+    glUseProgram(0);
 
     //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
@@ -613,3 +627,45 @@ void destroyTexture(GLuint textureId) {
     glGenTextures(1, &textureId);
 }
 
+/****** CODE CITATION **************************************************************
+* Title: Learn OpenGL: multiple_lights_exercise1.cpp
+* Author: Joey de Vries
+* Date Accessed: 14 June 2022
+* Code Version: N/A
+* Availability: https://learnopengl.com/code_viewer_gh.php?code=src/2.lighting/6.multiple_lights/multiple_lights.cpp
+************************************************************************************/
+
+// utility function for loading a 2D texture from file
+// ---------------------------------------------------
+unsigned int loadTexture(char const* path) {
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data) {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    } else {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
+}

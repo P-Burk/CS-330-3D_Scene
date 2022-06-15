@@ -46,11 +46,11 @@ void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat
     this->lightingShader.setFloat("material.shininess", 32.0f);
 
     /////////////////////////// LIGHT INFORMATION ///////////////////////////
-    //// directional light
-    //this->lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-    //this->lightingShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-    //this->lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-    //this->lightingShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+    // directional light
+    this->lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+    this->lightingShader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
+    this->lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+    this->lightingShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
     // point light 1
     this->lightingShader.setVec3("pointLights[0].position", passedpointLightPositions[0]);
     this->lightingShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
@@ -103,13 +103,22 @@ void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat
     // world transformation
     this->lightingShader.setMat4("model", passedModel);
 
-    // bind diffuse map
+    //TODO: see about creating a function for this.
+    // bind diffuse maps
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, this->diffuseMap);
-
-    // bind specular map
+    glBindTexture(GL_TEXTURE_2D, this->diffuseMap1);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, this->specularMap);
+    glBindTexture(GL_TEXTURE_2D, this->diffuseMap2);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, this->diffuseMap3);
+
+    // bind specular maps
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, this->specularMap1);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, this->specularMap2);
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, this->specularMap3);
 
     // draw the lamps
     this->lightCubeShader.use();

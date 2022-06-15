@@ -21,6 +21,9 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Lights.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CS-330-3D_Pyramid\Camera.h">
@@ -41,5 +44,25 @@
     <ClInclude Include="Plane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Lights.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\light_cube.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="include\light_cube.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="include\multiple_lights.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="include\multiple_lights.vs">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -26,15 +26,20 @@ extern const int WINDOW_HEIGHT;
 class Lights {
 public:
     //CONSTRUCTOR
-    Lights(Shader& passedLightingShader, Shader& passedLightCubeShader, Camera& passedCamera, unsigned int& passedDiffuseMap,
-        unsigned int& passedSpecularMap, vector<glm::vec3>& pointLightPositions) {
+    Lights(Shader& passedLightingShader, Shader& passedLightCubeShader, Camera& passedCamera, unsigned int& DM1,
+        unsigned int& SM1, unsigned int& DM2, unsigned int& SM2, unsigned int& DM3, unsigned int& SM3, vector<glm::vec3>& pointLightPositions) 
+    {
 
         //set member variables
         this->lightingShader = passedLightingShader;
         this->lightCubeShader = passedLightCubeShader;
         this->camera = passedCamera;
-        this->diffuseMap = passedDiffuseMap;
-        this->specularMap = passedSpecularMap;
+        this->diffuseMap1 = DM1;
+        this->specularMap1 = SM1;
+        this->diffuseMap2 = DM2;
+        this->specularMap2 = SM2;        
+        this->diffuseMap3 = DM3;
+        this->specularMap3 = SM3;
         this->pointLightPositions = pointLightPositions;
 
         //build light meshes
@@ -54,9 +59,13 @@ private:
     Shader lightingShader;
     Shader lightCubeShader;
     Camera camera;
-    unsigned int diffuseMap = NULL;
-    unsigned int specularMap = NULL;
     vector<glm::vec3> pointLightPositions;
+    unsigned int diffuseMap1 = NULL;
+    unsigned int specularMap1 = NULL;
+    unsigned int diffuseMap2 = NULL;
+    unsigned int specularMap2 = NULL;
+    unsigned int diffuseMap3 = NULL;
+    unsigned int specularMap3 = NULL;
     unsigned int lightCubeVAO;
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
     glm::mat4 view = camera.GetViewMatrix();
@@ -66,47 +75,47 @@ private:
 
     vector<float> vertices = {
         // positions            // normals           // texture coords
-        -0.5f, -0.5f, -0.5f,    0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,     0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,     0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        0.5f,  0.5f, -0.5f,     0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f, -0.5f,    0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,    0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,    0.0f,  0.0f, -1.0f,      0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,    0.0f,  0.0f, -1.0f,      1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,    0.0f,  0.0f, -1.0f,      1.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,    0.0f,  0.0f, -1.0f,      1.0f,  1.0f,
+        -0.5f,  0.5f, -0.5f,    0.0f,  0.0f, -1.0f,      0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,    0.0f,  0.0f, -1.0f,      0.0f,  0.0f,
 
-        -0.5f, -0.5f,  0.5f,    0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,     0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,     0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-        0.5f,  0.5f,  0.5f,     0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,    0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,    0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,    0.0f,  0.0f,  1.0f,      0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,    0.0f,  0.0f,  1.0f,      1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,    0.0f,  0.0f,  1.0f,      1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,    0.0f,  0.0f,  1.0f,      1.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,    0.0f,  0.0f,  1.0f,      0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,    0.0f,  0.0f,  1.0f,      0.0f,  0.0f,
 
-        -0.5f,  0.5f,  0.5f,   -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,   -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,   -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,   -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,   -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,   -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,   -1.0f,  0.0f,  0.0f,      1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,   -1.0f,  0.0f,  0.0f,      1.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,   -1.0f,  0.0f,  0.0f,      0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,   -1.0f,  0.0f,  0.0f,      0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,   -1.0f,  0.0f,  0.0f,      0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,   -1.0f,  0.0f,  0.0f,      1.0f,  0.0f,
 
-        0.5f,  0.5f,  0.5f,     1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,     1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-        0.5f, -0.5f, -0.5f,     1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        0.5f, -0.5f, -0.5f,     1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        0.5f, -0.5f,  0.5f,     1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,     1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,    1.0f,  0.0f,  0.0f,      1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,    1.0f,  0.0f,  0.0f,      1.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,    1.0f,  0.0f,  0.0f,      0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,    1.0f,  0.0f,  0.0f,      0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,    1.0f,  0.0f,  0.0f,      0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,    1.0f,  0.0f,  0.0f,      1.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,    0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-        0.5f, -0.5f, -0.5f,     0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-        0.5f, -0.5f,  0.5f,     0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,     0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,    0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,    0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,    0.0f, -1.0f,  0.0f,      0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,    0.0f, -1.0f,  0.0f,      1.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,    0.0f, -1.0f,  0.0f,      1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,    0.0f, -1.0f,  0.0f,      1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,    0.0f, -1.0f,  0.0f,      0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,    0.0f, -1.0f,  0.0f,      0.0f,  1.0f,
 
-        -0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        0.5f,  0.5f, -0.5f,     0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-        0.5f,  0.5f,  0.5f,     0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,     0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,    0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+        -0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f,      0.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f,      1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,    0.0f,  1.0f,  0.0f,      1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,    0.0f,  1.0f,  0.0f,      1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,    0.0f,  1.0f,  0.0f,      0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f,      0.0f,  1.0f
     };
 
     //moved to main.cpp file for easier modification
