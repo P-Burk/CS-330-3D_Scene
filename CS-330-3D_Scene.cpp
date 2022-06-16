@@ -75,6 +75,7 @@ void processInput(GLFWwindow* window);
 void renderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLFWwindow* window, const bool WIREFRAME_MODE);
 void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void renderPlaneMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
+void renderCylinderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
@@ -210,10 +211,10 @@ int main() {
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        lights.renderLights(pointLightPositions, projection, view, model);
+        lights.renderLights(pointLightPositions, projection, view, model, perspectiveSwitch);
 
         //render shapes
-        //renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), window, WIREFRAME_MODE, perspectiveSwitch);
+        renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID3, window, WIREFRAME_MODE, perspectiveSwitch);
         renderCubeMesh(cubeMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID2, window, WIREFRAME_MODE, perspectiveSwitch);
         renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID1, window, WIREFRAME_MODE, perspectiveSwitch);
 
