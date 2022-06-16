@@ -47,7 +47,7 @@ public:
     }
 
     //FUNCTIONS
-    void renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel);
+    void renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch);
     unsigned int getLightCubeVAO() { return this->lightCubeVAO; }
 
 
@@ -67,6 +67,7 @@ private:
     unsigned int diffuseMap3 = NULL;
     unsigned int specularMap3 = NULL;
     unsigned int lightCubeVAO;
+    bool perspectiveSwitch;
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 model = glm::mat4(1.0f);

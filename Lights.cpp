@@ -40,7 +40,7 @@ void Lights::buildLights(GLMesh& mesh, vector<float>& vertices, Shader& lighting
     lightingShader.setInt("material.specular", 1);
 }
 
-void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel) {
+void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch) {
 
     // be sure to activate shader when setting uniforms/drawing objects
     this->lightingShader.use();
@@ -121,6 +121,13 @@ void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat
     glBindTexture(GL_TEXTURE_2D, this->specularMap2);
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, this->specularMap3);
+
+    // Projection MAtrix
+    if (perspectiveSwitch) {
+        passedProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    } else {
+        passedProjection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    }
 
     // draw the lamps
     this->lightCubeShader.use();
