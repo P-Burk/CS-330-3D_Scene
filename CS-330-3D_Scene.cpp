@@ -126,6 +126,12 @@ int main() {
         return false;
     }
 
+    // settings so triangles are rendered on one side only
+    // CCW winding order
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
     // initialize AFTER glewExperimental to avoid error "Access violation.... 0X00000000"
     Cube cubeMesh;
     Cylinder cylinderMesh;
@@ -134,7 +140,7 @@ int main() {
     /****** CODE CITATION **************************************************************
     * Title: Learn OpenGL: multiple_lights_exercise1.cpp
     * Author: Joey de Vries
-    * Date Accessed: 11 June 2022
+    * Date Accessed: 14 June 2022
     * Code Version: N/A
     * Availability: https://learnopengl.com/code_viewer_gh.php?code=src/2.lighting/6.multiple_lights/multiple_lights.cpp
     ************************************************************************************/
@@ -159,6 +165,8 @@ int main() {
 
     Lights lights(lightingShader, lightCubeShader, camera, cameraBodyDiffuseMap, cameraBodySpecularMap, cameraLensDiffuseMap, cameraLensSpecularMap,
                   planeDiffuseMap, planeSpecularMap, pointLightPositions);
+
+    /******* END OF CITED CODE **********************************************************/
 
     // Load texture
     if (!createTexture(woodTextureFile, textureID1)) {
@@ -328,23 +336,24 @@ void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgra
     //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
+//TODO: fix cylinder renderer
 // render the cylinder
-void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspective, GLuint textureID) {
-    /*
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
+void renderCylinderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
+ 
     // enable z-depth buffer
     glEnable(GL_DEPTH_TEST);
 
-    // clear the background frame and z-depth buffer
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    */
+    // Activate the VBOs contained within the mesh's VAO.
+    glBindVertexArray(mesh.vao);
+
+    //////////// SHAPE DRAW FUNCTIONS ////////////
+    glUseProgram(shapeProgramID);
+
     // 1. scales object
     glm::mat4 scale = glm::scale(glm::vec3(1.8f, 2.0f, 2.0f));
 
     // 2. rotates object 
     glm::mat4 rotation = glm::mat4(1.0f);
-
     // for no rotation, set radians to 0 and X, Y, and Z values to 1
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
@@ -361,7 +370,7 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     // Projection MAtrix
     //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
     glm::mat4 projection;
-    if (perspective) {
+    if (perspectiveSwitch) {
         projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
     }
     else {
@@ -369,24 +378,16 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     }
 
     // retrieves and passes transformation matrices to shader program
-    GLint modelLoc = glGetUniformLocation(programID, "model");
+    GLint modelLoc = glGetUniformLocation(shapeProgramID, "model");
+    GLint viewLoc = glGetUniformLocation(shapeProgramID, "view");
+    GLint projLoc = glGetUniformLocation(shapeProgramID, "projection");
+
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-    GLint viewLoc = glGetUniformLocation(programID, "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-    GLint projLoc = glGetUniformLocation(programID, "projection");
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    // Set the shader to be used.
-    glUseProgram(programID);
-
-    // Sends transform information to the Vertex shader
-    GLuint transformLocation = glGetUniformLocation(programID, "shaderTransform");
-    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(model));
-
-    // Activate the VBOs contained within the mesh's VAO.
-    glBindVertexArray(mesh.vao);
+    GLint UVScaleLoc = glGetUniformLocation(shapeProgramID, "uvScale");
+    glUniform2fv(UVScaleLoc, 1, glm::value_ptr(gUVScale));
 
     // wireframe mode
     if (WIREFRAME_MODE == true) {
@@ -398,10 +399,11 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint programID, GLFWwindow* window
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Draw the triangle.
-    glDrawElements(GL_TRIANGLES, mesh.nVertices, GL_UNSIGNED_SHORT, NULL); // Draws the triangle
+    glDrawArrays(GL_TRIANGLES, 0, mesh.nVertices); // Draws the triangle
 
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
+    glUseProgram(0);
 
     //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
