@@ -31,6 +31,7 @@ protected:
     vector<GLfloat> verticesVector;
     void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>& verticesVector);
     void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector);
+    vector<float> addNormals(vector<float> inputVec);
 
 private:
 

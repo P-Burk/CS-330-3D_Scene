@@ -6,6 +6,8 @@
 #include "Lights.h"
 
 void Lights::buildLights(GLMesh& mesh, vector<float>& vertices, Shader& lightingShader) {
+    this->vertices = addNormals(vertices);
+
     // first, configure the cube's VAO (and VBO)
     glGenVertexArrays(1, &mesh.vao);
     glGenBuffers(1, &mesh.vbo);
@@ -137,3 +139,56 @@ void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat
 
 }
 
+vector<float> Lights::addNormals(vector<float> inputVec) {
+    const float EPSILON = 0.000001f;
+    vector<float> outputVec;
+    vector<float> normal(3, 0.0f);     // default return value (0,0,0)
+    unsigned int totalTriangles = inputVec.size() / 15;
+    float nx, ny, nz;
+
+    for (int i = 0; i < totalTriangles; i++) {
+        float x1 = inputVec[0];
+        float y1 = inputVec[1];
+        float z1 = inputVec[2];
+        float x2 = inputVec[5];
+        float y2 = inputVec[6];
+        float z2 = inputVec[7];
+        float x3 = inputVec[10];
+        float y3 = inputVec[11];
+        float z3 = inputVec[12];
+
+        // find 2 edge vectors: v1-v2, v1-v3
+        float ex1 = x2 - x1;
+        float ey1 = y2 - y1;
+        float ez1 = z2 - z1;
+        float ex2 = x3 - x1;
+        float ey2 = y3 - y1;
+        float ez2 = z3 - z1;
+
+        // cross product: e1 x e2
+        nx = ey1 * ez2 - ez1 * ey2;
+        ny = ez1 * ex2 - ex1 * ez2;
+        nz = ex1 * ey2 - ey1 * ex2;
+
+        // normalize only if the length is > 0
+        float length = sqrtf(nx * nx + ny * ny + nz * nz);
+        if (length > EPSILON) {
+            // normalize
+            float lengthInv = 1.0f / length;
+            normal[0] = nx * lengthInv;
+            normal[1] = ny * lengthInv;
+            normal[2] = nz * lengthInv;
+        }
+        inputVec.insert(inputVec.begin() + 13, normal.begin(), normal.end());
+        inputVec.insert(inputVec.begin() + 8, normal.begin(), normal.end());
+        inputVec.insert(inputVec.begin() + 3, normal.begin(), normal.end());
+        outputVec.insert(outputVec.end(), inputVec.begin(), inputVec.begin() + 24);
+        inputVec.erase(inputVec.begin(), inputVec.begin() + 24);
+    }
+
+    //debuging code
+    //std::cout << "Normal: (" << normal[0] << "f, " << normal[1] << "f, " << normal[2] << "f)" << std::endl;
+    //std::cout << length << endl;
+
+    return outputVec;
+}
