@@ -28,7 +28,7 @@ public:
     //CONSTRUCTOR
     Lights(Shader& passedLightingShader, Shader& passedLightCubeShader, Camera& passedCamera, unsigned int& DM1,
         unsigned int& SM1, unsigned int& DM2, unsigned int& SM2, unsigned int& DM3, unsigned int& SM3, vector<glm::vec3>& pointLightPositions,
-        glm::vec3 &dirLightPosition)
+        vector<glm::vec3>& dirLightPosition)
     {
 
         //set member variables
@@ -49,7 +49,7 @@ public:
     }
 
     //FUNCTIONS
-    void renderLights(vector<glm::vec3>& passedpointLightPositions, glm::vec3& passedDirLightPos, 
+    void renderLights(vector<glm::vec3>& passedpointLightPositions, vector<glm::vec3>& passedDirLightPos,
                       glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, 
                       bool perspectiveSwitch);
     unsigned int getLightCubeVAO() { return this->lightCubeVAO; }
@@ -64,7 +64,7 @@ private:
     Shader lightCubeShader;
     Camera camera;
     vector<glm::vec3> pointLightPositions;
-    glm::vec3 dirLightPosition;
+    vector<glm::vec3> dirLightPosition;
     unsigned int diffuseMap1 = NULL;
     unsigned int specularMap1 = NULL;
     unsigned int diffuseMap2 = NULL;

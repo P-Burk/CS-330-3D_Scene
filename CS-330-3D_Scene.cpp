@@ -60,7 +60,7 @@ float ROTATE_Y = 1.0f;
 float ROTATE_Z = 1.0f;
 
 // CAMERA VARIABLES
-Camera camera(glm::vec3(0.0f, 0.0f, 6.0f));
+Camera camera(glm::vec3(0.0f, 4.0f, 9.0f));
 float lastX = WINDOW_WIDTH / 2.0f;
 float lastY = WINDOW_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -121,8 +121,7 @@ int main() {
     glewExperimental = GL_TRUE;
     GLenum GlewInitResult = glewInit();
 
-    if (GLEW_OK != GlewInitResult)
-    {
+    if (GLEW_OK != GlewInitResult) {
         std::cerr << glewGetErrorString(GlewInitResult) << std::endl;
         return false;
     }
@@ -148,12 +147,15 @@ int main() {
 
     //positions of the point lights
     vector<glm::vec3> pointLightPositions = {
-        glm::vec3(  0.0f,  5.0f,  4.0f),
-        glm::vec3(  4.0f,  1.5f,  0.0f),
-        glm::vec3( -1.0f,  0.8f, -3.0f),
-        glm::vec3(  2.0f,  0.5f,  0.0f)
+        glm::vec3( 0.0f,  8.0f,  9.0f),
+        glm::vec3(-1.0f,  8.0f,  9.0f),
+        glm::vec3(-1.0f,  0.8f, -3.0f),
+        glm::vec3( 2.0f,  0.5f,  0.0f)
     };
-    glm::vec3 dirLightPosition = glm::vec3(0.0f, 7.0f, 2.0f);
+    vector<glm::vec3> dirLightPositions = {
+        glm::vec3(0.0f, 10.0f, 8.0f),
+        glm::vec3(2.0f,  2.0f,  0.0f)
+    };
 
     unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
     unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
@@ -166,7 +168,7 @@ int main() {
     Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
 
     Lights lights(lightingShader, lightCubeShader, camera, cameraBodyDiffuseMap, cameraBodySpecularMap, cameraLensDiffuseMap, cameraLensSpecularMap,
-                  planeDiffuseMap, planeSpecularMap, pointLightPositions, dirLightPosition);
+                  planeDiffuseMap, planeSpecularMap, pointLightPositions, dirLightPositions);
 
     /******* END OF CITED CODE **********************************************************/
 
@@ -212,7 +214,7 @@ int main() {
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        lights.renderLights(pointLightPositions, dirLightPosition, projection, view, model, perspectiveSwitch);
+        lights.renderLights(pointLightPositions, dirLightPositions, projection, view, model, perspectiveSwitch);
 
         //render shapes
         renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID3, window, WIREFRAME_MODE, perspectiveSwitch);
@@ -286,7 +288,7 @@ void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgra
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f));
+    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 3.5f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = rotation * scale * translation;
@@ -360,7 +362,7 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampPr
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(0.23f, -0.1f, 0.5f));
+    glm::mat4 translation = glm::translate(glm::vec3(0.23f, -0.1f, 2.3f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = scale * rotation * translation;
@@ -455,7 +457,7 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgr
     glUseProgram(shapeProgramID);
 
     // 1. scales object
-    glm::mat4 scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
+    glm::mat4 scale = glm::scale(glm::vec3(2.0f, 1.0f, 2.0f));
 
     // 2. rotates object 
     glm::mat4 rotation = glm::mat4(1.0f);
