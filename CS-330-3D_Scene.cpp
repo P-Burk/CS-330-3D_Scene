@@ -148,11 +148,12 @@ int main() {
 
     //positions of the point lights
     vector<glm::vec3> pointLightPositions = {
-        glm::vec3( -4.0f,  3.5f,  0.0f),
+        glm::vec3(  0.0f,  5.0f,  4.0f),
         glm::vec3(  4.0f,  1.5f,  0.0f),
         glm::vec3( -1.0f,  0.8f, -3.0f),
         glm::vec3(  2.0f,  0.5f,  0.0f)
     };
+    glm::vec3 dirLightPosition = glm::vec3(0.0f, 7.0f, 2.0f);
 
     unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
     unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
@@ -165,7 +166,7 @@ int main() {
     Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
 
     Lights lights(lightingShader, lightCubeShader, camera, cameraBodyDiffuseMap, cameraBodySpecularMap, cameraLensDiffuseMap, cameraLensSpecularMap,
-                  planeDiffuseMap, planeSpecularMap, pointLightPositions);
+                  planeDiffuseMap, planeSpecularMap, pointLightPositions, dirLightPosition);
 
     /******* END OF CITED CODE **********************************************************/
 
@@ -211,7 +212,7 @@ int main() {
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        lights.renderLights(pointLightPositions, projection, view, model, perspectiveSwitch);
+        lights.renderLights(pointLightPositions, dirLightPosition, projection, view, model, perspectiveSwitch);
 
         //render shapes
         renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID3, window, WIREFRAME_MODE, perspectiveSwitch);
