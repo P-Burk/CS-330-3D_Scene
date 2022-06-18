@@ -164,7 +164,7 @@ int main() {
 
     //positions of the point lights
     vector<glm::vec3> pointLightPositions = {
-        glm::vec3( -4.0f,  3.5f,  0.0f),
+        glm::vec3(  0.0f,  3.5f,  -2.0f),
         glm::vec3(  4.0f,  1.5f,  0.0f),
         glm::vec3( -1.0f,  0.8f, -3.0f),
         glm::vec3(  2.0f,  0.5f,  0.0f)

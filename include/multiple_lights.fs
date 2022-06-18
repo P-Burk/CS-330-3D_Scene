@@ -51,7 +51,7 @@ struct SpotLight {
 };
 
 //Change this to change the amount of point lights
-#define NR_POINT_LIGHTS 2
+#define NR_POINT_LIGHTS 1
 
 in vec3 FragPos;
 in vec3 Normal;
