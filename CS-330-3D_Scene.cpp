@@ -308,7 +308,7 @@ void renderCubeMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuse
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f));
+    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 4.0f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = rotation * scale * translation;
@@ -385,7 +385,7 @@ void renderCylinderMesh(const GLMesh& mesh, Shader lightShader, unsigned int dif
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(0.23f, -0.1f, 0.5f));
+    glm::mat4 translation = glm::translate(glm::vec3(0.23f, -0.1f, 2.7f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = scale * rotation * translation;
