@@ -180,8 +180,8 @@ int main() {
     unsigned int cameraLensSpecularMap = loadTexture(camLensTextureFile);
     unsigned int planeDiffuseMap = loadTexture(woodTextureFile);
     unsigned int planeSpecularMap = loadTexture(woodTextureFile);
-    unsigned int holderDiffuseMap = loadTexture(holderTexture);
-    unsigned int holderSpecularMap = loadTexture(holderTexture);
+    //unsigned int holderDiffuseMap = loadTexture(holderTexture);
+    //unsigned int holderSpecularMap = loadTexture(holderTexture);
 
     //NOTE: for debugging
     //unsigned int cameraBodyDiffuseMap = textureID2;
@@ -197,11 +197,11 @@ int main() {
     lightingShader.setInt("material.diffuse", 0);
     lightingShader.setInt("material.specular", 1);
 
-    Lights lights(lightingShader, lightCubeShader, camera, textureID1, textureID1, pointLightPositions, spotLightPos);
+    Lights lights(lightingShader, lightCubeShader, camera, planeDiffuseMap, planeSpecularMap, pointLightPositions, spotLightPos);
 
-    Cube cubeMesh(lightingShader, lightCubeShader, textureID2, textureID2);
-    Cylinder cylinderMesh(lightingShader, lightCubeShader, textureID3, textureID3);
-    Plane planeMesh(lightingShader, lightCubeShader, textureID1, textureID1);
+    Cube cubeMesh(lightingShader, lightCubeShader, cameraBodyDiffuseMap, cameraBodySpecularMap);
+    Cylinder cylinderMesh(lightingShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
+    Plane planeMesh(lightingShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
 
 
     /******* END OF CITED CODE **********************************************************/
@@ -237,8 +237,8 @@ int main() {
 
         //render shapes
         renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader, planeDiffuseMap, planeSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
-        renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader, cameraLensDiffuseMap, cameraLensSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderCubeMesh(cubeMesh.getShapeMesh(), lightingShader, cameraBodyDiffuseMap, cameraBodySpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader, cameraLensDiffuseMap, cameraLensSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
