@@ -154,8 +154,8 @@ int main() {
         glm::vec3(  2.0f,  0.5f,  0.0f)
     };
 
-    Shader lightingShader("includes/multiple_lights.vs", "includes/multiple_lights.fs");
-    Shader lightCubeShader("includes/light_cube.vs", "includes/light_cube.fs");
+    Shader lightingShader("include/multiple_lights.vs", "include/multiple_lights.fs");
+    Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
 
     unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
     unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
@@ -167,8 +167,7 @@ int main() {
     unsigned int holderSpecularMap = loadTexture(holderTexture);
 
 
-    Lights lights(lightingShader, lightCubeShader, camera, holderDiffuseMap, holderSpecularMap, holderDiffuseMap, holderSpecularMap,
-        holderDiffuseMap, holderSpecularMap, pointLightPositions);
+    Lights lights(lightingShader, lightCubeShader, camera, holderDiffuseMap, holderSpecularMap, pointLightPositions);
 
     Cube cubeMesh(lightCubeShader, lightCubeShader, cameraBodyDiffuseMap, cameraBodySpecularMap);
     Cylinder cylinderMesh(lightCubeShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
@@ -195,7 +194,7 @@ int main() {
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // We set the texture as texture unit 0
-    glUniform1i(glGetUniformLocation(shapeProgramID, "TEXTURE"), 0);
+    //glUniform1i(glGetUniformLocation(shapeProgramID, "TEXTURE"), 0);
 
     // while loop to continually render until user closes window
     while (!glfwWindowShouldClose(window)) {
