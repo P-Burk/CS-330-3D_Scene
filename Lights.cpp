@@ -35,9 +35,9 @@ void Lights::buildLights(GLMesh& mesh, vector<float>& vertices, Shader& lighting
 
     // shader configuration
     // --------------------
-    lightingShader.use();
-    lightingShader.setInt("material.diffuse", 0);
-    lightingShader.setInt("material.specular", 1);
+    //lightingShader.use();
+    //lightingShader.setInt("material.diffuse", 0);
+    //lightingShader.setInt("material.specular", 1);
 }
 
 void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch) {
@@ -63,7 +63,7 @@ void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat
     this->lightingShader.setFloat("pointLights[0].quadratic", 0.032f);
     // point light 2
     this->lightingShader.setVec3("pointLights[1].position", passedpointLightPositions[1]);
-    this->lightingShader.setVec3("pointLights[1].ambient", 0.2f, 0.05f, 0.05f);
+    this->lightingShader.setVec3("pointLights[1].ambient", 1.0f, 1.0f, 1.0f);
     this->lightingShader.setVec3("pointLights[1].diffuse", 0.65f, 0.25f, 0.25f);
     this->lightingShader.setVec3("pointLights[1].specular", 0.4f, 0.05f, 0.05f);
     this->lightingShader.setFloat("pointLights[1].constant", 1.0f);
@@ -105,23 +105,14 @@ void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat
     // world transformation
     this->lightingShader.setMat4("model", passedModel);
 
-    //TODO: see about creating a function for this.
-    // bind diffuse maps
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, this->diffuseMap1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, this->diffuseMap2);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, this->diffuseMap3);
+    //// bind diffuse map
+    //glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, this->diffuseMap);
 
-    // bind specular maps
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, this->specularMap1);
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, this->specularMap2);
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, this->specularMap3);
-
+    //// bind specular map
+    //glActiveTexture(GL_TEXTURE1);
+    //glBindTexture(GL_TEXTURE_2D, this->specularMap);
+ 
     // Projection MAtrix
     if (perspectiveSwitch) {
         passedProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
