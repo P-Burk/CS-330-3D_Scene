@@ -169,6 +169,7 @@ int main() {
         glm::vec3( -1.0f,  0.8f, -3.0f),
         glm::vec3(  2.0f,  0.5f,  0.0f)
     };
+    glm::vec3 spotLightPos(0.0f, 6.0f, 13.0f);
 
     Shader lightingShader("include/multiple_lights.vs", "include/multiple_lights.fs");
     Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
@@ -196,7 +197,7 @@ int main() {
     lightingShader.setInt("material.diffuse", 0);
     lightingShader.setInt("material.specular", 1);
 
-    Lights lights(lightingShader, lightCubeShader, camera, textureID1, textureID1, pointLightPositions);
+    Lights lights(lightingShader, lightCubeShader, camera, textureID1, textureID1, pointLightPositions, spotLightPos);
 
     Cube cubeMesh(lightingShader, lightCubeShader, textureID2, textureID2);
     Cylinder cylinderMesh(lightingShader, lightCubeShader, textureID3, textureID3);

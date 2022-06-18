@@ -27,7 +27,7 @@ class Lights {
     public:
         //CONSTRUCTOR
         Lights(Shader& passedLightingShader, Shader& passedLightCubeShader, Camera& passedCamera, unsigned int& passedDiffuseMap,
-            unsigned int& passedSpecularMap, vector<glm::vec3>& pointLightPositions) {
+            unsigned int& passedSpecularMap, vector<glm::vec3>& pointLightPositions, glm::vec3 spotLightPos) {
 
             //set member variables
             this->lightingShader = passedLightingShader;
@@ -36,6 +36,7 @@ class Lights {
             this->diffuseMap = NULL;
             this->specularMap = NULL;
             this->pointLightPositions = pointLightPositions;
+            this->spotLightPos = spotLightPos;
 
             //build light meshes
             buildLights(this->shapeMesh, this->vertices, this->lightingShader);
@@ -57,6 +58,7 @@ class Lights {
         unsigned int diffuseMap = NULL;
         unsigned int specularMap = NULL;
         vector<glm::vec3> pointLightPositions;
+        glm::vec3 spotLightPos;
         unsigned int lightCubeVAO;
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
