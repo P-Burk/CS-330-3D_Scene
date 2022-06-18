@@ -14,6 +14,10 @@ void Mesh::buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>
 
     vertsVector = addNormals(vertsVector);
 
+    this->lightingShader.use();
+    this->lightingShader.setInt("material.diffuse", 0);
+    this->lightingShader.setInt("material.specular", 1);
+
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex
     const GLuint normalsFloats = 3;       // floats that represent color (r, g, b, a)
@@ -49,6 +53,10 @@ void Mesh::buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>
 void Mesh::buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector) {
 
     vertsVector = addNormals(vertsVector);
+
+    this->lightingShader.use();
+    this->lightingShader.setInt("material.diffuse", 0);
+    this->lightingShader.setInt("material.specular", 1);
 
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex

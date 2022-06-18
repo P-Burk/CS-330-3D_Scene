@@ -35,9 +35,9 @@ void Lights::buildLights(GLMesh& mesh, vector<float>& vertices, Shader& lighting
 
     // shader configuration
     // --------------------
-    //lightingShader.use();
-    //lightingShader.setInt("material.diffuse", 0);
-    //lightingShader.setInt("material.specular", 1);
+    lightingShader.use();
+    lightingShader.setInt("material.diffuse", 0);
+    lightingShader.setInt("material.specular", 1);
 }
 
 void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch) {
@@ -105,13 +105,13 @@ void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat
     // world transformation
     this->lightingShader.setMat4("model", passedModel);
 
-    //// bind diffuse map
-    //glActiveTexture(GL_TEXTURE0);
-    //glBindTexture(GL_TEXTURE_2D, this->diffuseMap);
+    // bind diffuse map
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, this->diffuseMap);
 
-    //// bind specular map
-    //glActiveTexture(GL_TEXTURE1);
-    //glBindTexture(GL_TEXTURE_2D, this->specularMap);
+    // bind specular map
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, this->specularMap);
  
     // Projection MAtrix
     if (perspectiveSwitch) {

@@ -137,6 +137,22 @@ int main() {
     //Cube cubeMesh;
     //Cylinder cylinderMesh;
     //Plane planeMesh;
+    
+    // Load texture
+    if (!createTexture(woodTextureFile, textureID1)) {
+        cout << "Failed to load texture " << woodTextureFile << endl;
+        return EXIT_FAILURE;
+    }
+    // Load texture
+    if (!createTexture(camBodyTextureFile, textureID2)) {
+        cout << "Failed to load texture " << camBodyTextureFile << endl;
+        return EXIT_FAILURE;
+    }
+    // Load texture
+    if (!createTexture(camLensTextureFile, textureID3)) {
+        cout << "Failed to load texture " << camLensTextureFile << endl;
+        return EXIT_FAILURE;
+    }
 
     /****** CODE CITATION **************************************************************
     * Title: Learn OpenGL: multiple_lights_exercise1.cpp
@@ -157,40 +173,38 @@ int main() {
     Shader lightingShader("include/multiple_lights.vs", "include/multiple_lights.fs");
     Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
 
-    unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
-    unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
-    unsigned int cameraLensDiffuseMap = loadTexture(camLensTextureFile);
-    unsigned int cameraLensSpecularMap = loadTexture(camLensTextureFile);
-    unsigned int planeDiffuseMap = loadTexture(woodTextureFile);
-    unsigned int planeSpecularMap = loadTexture(woodTextureFile);
-    unsigned int holderDiffuseMap = loadTexture(holderTexture);
-    unsigned int holderSpecularMap = loadTexture(holderTexture);
+    //unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
+    //unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
+    //unsigned int cameraLensDiffuseMap = loadTexture(camLensTextureFile);
+    //unsigned int cameraLensSpecularMap = loadTexture(camLensTextureFile);
+    //unsigned int planeDiffuseMap = loadTexture(woodTextureFile);
+    //unsigned int planeSpecularMap = loadTexture(woodTextureFile);
+    //unsigned int holderDiffuseMap = loadTexture(holderTexture);
+    //unsigned int holderSpecularMap = loadTexture(holderTexture);
 
+    //NOTE: for debugging
+    unsigned int cameraBodyDiffuseMap = textureID2;
+    unsigned int cameraBodySpecularMap = textureID2;
+    unsigned int cameraLensDiffuseMap = textureID3;
+    unsigned int cameraLensSpecularMap = textureID3;
+    unsigned int planeDiffuseMap = textureID1;
+    unsigned int planeSpecularMap = textureID1;
+    unsigned int holderDiffuseMap = textureID1;
+    unsigned int holderSpecularMap =textureID1;
 
-    Lights lights(lightingShader, lightCubeShader, camera, holderDiffuseMap, holderSpecularMap, pointLightPositions);
+    lightingShader.use();
+    lightingShader.setInt("material.diffuse", 0);
+    lightingShader.setInt("material.specular", 1);
 
-    Cube cubeMesh(lightCubeShader, lightCubeShader, cameraBodyDiffuseMap, cameraBodySpecularMap);
-    Cylinder cylinderMesh(lightCubeShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
-    Plane planeMesh(lightCubeShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
+    Lights lights(lightingShader, lightCubeShader, camera, textureID1, textureID1, pointLightPositions);
+
+    Cube cubeMesh(lightingShader, lightCubeShader, textureID2, textureID2);
+    Cylinder cylinderMesh(lightingShader, lightCubeShader, textureID3, textureID3);
+    Plane planeMesh(lightingShader, lightCubeShader, textureID1, textureID1);
 
 
     /******* END OF CITED CODE **********************************************************/
 
-    //// Load texture
-    //if (!createTexture(woodTextureFile, textureID1)) {
-    //    cout << "Failed to load texture " << woodTextureFile << endl;
-    //    return EXIT_FAILURE;
-    //}
-    //// Load texture
-    //if (!createTexture(camBodyTextureFile, textureID2)) {
-    //    cout << "Failed to load texture " << camBodyTextureFile << endl;
-    //    return EXIT_FAILURE;
-    //}
-    //// Load texture
-    //if (!createTexture(camLensTextureFile, textureID3)) {
-    //    cout << "Failed to load texture " << camLensTextureFile << endl;
-    //    return EXIT_FAILURE;
-    //}
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // We set the texture as texture unit 0
