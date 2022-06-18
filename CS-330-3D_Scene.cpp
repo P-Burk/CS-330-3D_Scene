@@ -173,24 +173,24 @@ int main() {
     Shader lightingShader("include/multiple_lights.vs", "include/multiple_lights.fs");
     Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
 
-    //unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
-    //unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
-    //unsigned int cameraLensDiffuseMap = loadTexture(camLensTextureFile);
-    //unsigned int cameraLensSpecularMap = loadTexture(camLensTextureFile);
-    //unsigned int planeDiffuseMap = loadTexture(woodTextureFile);
-    //unsigned int planeSpecularMap = loadTexture(woodTextureFile);
-    //unsigned int holderDiffuseMap = loadTexture(holderTexture);
-    //unsigned int holderSpecularMap = loadTexture(holderTexture);
+    unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
+    unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
+    unsigned int cameraLensDiffuseMap = loadTexture(camLensTextureFile);
+    unsigned int cameraLensSpecularMap = loadTexture(camLensTextureFile);
+    unsigned int planeDiffuseMap = loadTexture(woodTextureFile);
+    unsigned int planeSpecularMap = loadTexture(woodTextureFile);
+    unsigned int holderDiffuseMap = loadTexture(holderTexture);
+    unsigned int holderSpecularMap = loadTexture(holderTexture);
 
     //NOTE: for debugging
-    unsigned int cameraBodyDiffuseMap = textureID2;
-    unsigned int cameraBodySpecularMap = textureID2;
-    unsigned int cameraLensDiffuseMap = textureID3;
-    unsigned int cameraLensSpecularMap = textureID3;
-    unsigned int planeDiffuseMap = textureID1;
-    unsigned int planeSpecularMap = textureID1;
-    unsigned int holderDiffuseMap = textureID1;
-    unsigned int holderSpecularMap =textureID1;
+    //unsigned int cameraBodyDiffuseMap = textureID2;
+    //unsigned int cameraBodySpecularMap = textureID2;
+    //unsigned int cameraLensDiffuseMap = textureID3;
+    //unsigned int cameraLensSpecularMap = textureID3;
+    //unsigned int planeDiffuseMap = textureID1;
+    //unsigned int planeSpecularMap = textureID1;
+    //unsigned int holderDiffuseMap = textureID1;
+    //unsigned int holderSpecularMap =textureID1;
 
     lightingShader.use();
     lightingShader.setInt("material.diffuse", 0);
@@ -482,7 +482,7 @@ void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
     glUseProgram(lightShader.getID());
 
     // 1. scales object
-    glm::mat4 scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
+    glm::mat4 scale = glm::scale(glm::vec3(2.0f, 2.0f, 2.0f));
 
     // 2. rotates object 
     glm::mat4 rotation = glm::mat4(1.0f);
@@ -490,7 +490,7 @@ void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f));
+    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.6f, 0.0f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = scale * rotation * translation;
@@ -626,6 +626,7 @@ unsigned int loadTexture(char const* path) {
     int width, height, nrComponents;
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
     if (data) {
+        flipImageVertically(data, width, height, nrComponents);
         GLenum format;
         if (nrComponents == 1)
             format = GL_RED;
