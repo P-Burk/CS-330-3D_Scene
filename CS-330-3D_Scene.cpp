@@ -53,6 +53,7 @@ const char* const WINDOW_TITLE = "6-5 Milestone: Lighting Complex Objects";
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camBodyTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
+const char* holderTexture = "resources/textures/brick_wall.jpg";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
 float ROTATE_X = 1.0f;
@@ -72,10 +73,9 @@ bool perspectiveSwitch = false;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
-void renderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLFWwindow* window, const bool WIREFRAME_MODE);
-void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
-void renderPlaneMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
-void renderCylinderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
+void renderCubeMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
+void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
+void renderCylinderMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
@@ -134,9 +134,9 @@ int main() {
     glFrontFace(GL_CCW);
 
     // initialize AFTER glewExperimental to avoid error "Access violation.... 0X00000000"
-    Cube cubeMesh;
-    Cylinder cylinderMesh;
-    Plane planeMesh;
+    //Cube cubeMesh;
+    //Cylinder cylinderMesh;
+    //Plane planeMesh;
 
     /****** CODE CITATION **************************************************************
     * Title: Learn OpenGL: multiple_lights_exercise1.cpp
@@ -154,36 +154,44 @@ int main() {
         glm::vec3(  2.0f,  0.5f,  0.0f)
     };
 
+    Shader lightingShader("includes/multiple_lights.vs", "includes/multiple_lights.fs");
+    Shader lightCubeShader("includes/light_cube.vs", "includes/light_cube.fs");
+
     unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
     unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
     unsigned int cameraLensDiffuseMap = loadTexture(camLensTextureFile);
     unsigned int cameraLensSpecularMap = loadTexture(camLensTextureFile);
     unsigned int planeDiffuseMap = loadTexture(woodTextureFile);
     unsigned int planeSpecularMap = loadTexture(woodTextureFile);
+    unsigned int holderDiffuseMap = loadTexture(holderTexture);
+    unsigned int holderSpecularMap = loadTexture(holderTexture);
 
-    Shader lightingShader("include/multiple_lights.vs", "include/multiple_lights.fs");
-    Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
 
-    Lights lights(lightingShader, lightCubeShader, camera, cameraBodyDiffuseMap, cameraBodySpecularMap, cameraLensDiffuseMap, cameraLensSpecularMap,
-                  planeDiffuseMap, planeSpecularMap, pointLightPositions);
+    Lights lights(lightingShader, lightCubeShader, camera, holderDiffuseMap, holderSpecularMap, holderDiffuseMap, holderSpecularMap,
+        holderDiffuseMap, holderSpecularMap, pointLightPositions);
+
+    Cube cubeMesh(lightCubeShader, lightCubeShader, cameraBodyDiffuseMap, cameraBodySpecularMap);
+    Cylinder cylinderMesh(lightCubeShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
+    Plane planeMesh(lightCubeShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
+
 
     /******* END OF CITED CODE **********************************************************/
 
-    // Load texture
-    if (!createTexture(woodTextureFile, textureID1)) {
-        cout << "Failed to load texture " << woodTextureFile << endl;
-        return EXIT_FAILURE;
-    }
-    // Load texture
-    if (!createTexture(camBodyTextureFile, textureID2)) {
-        cout << "Failed to load texture " << camBodyTextureFile << endl;
-        return EXIT_FAILURE;
-    }
-    // Load texture
-    if (!createTexture(camLensTextureFile, textureID3)) {
-        cout << "Failed to load texture " << camLensTextureFile << endl;
-        return EXIT_FAILURE;
-    }
+    //// Load texture
+    //if (!createTexture(woodTextureFile, textureID1)) {
+    //    cout << "Failed to load texture " << woodTextureFile << endl;
+    //    return EXIT_FAILURE;
+    //}
+    //// Load texture
+    //if (!createTexture(camBodyTextureFile, textureID2)) {
+    //    cout << "Failed to load texture " << camBodyTextureFile << endl;
+    //    return EXIT_FAILURE;
+    //}
+    //// Load texture
+    //if (!createTexture(camLensTextureFile, textureID3)) {
+    //    cout << "Failed to load texture " << camLensTextureFile << endl;
+    //    return EXIT_FAILURE;
+    //}
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // We set the texture as texture unit 0
@@ -214,9 +222,10 @@ int main() {
         lights.renderLights(pointLightPositions, projection, view, model, perspectiveSwitch);
 
         //render shapes
-        renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID3, window, WIREFRAME_MODE, perspectiveSwitch);
-        renderCubeMesh(cubeMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID2, window, WIREFRAME_MODE, perspectiveSwitch);
-        renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader.getID(), lightCubeShader.getID(), textureID1, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader, planeDiffuseMap, planeSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader, cameraLensDiffuseMap, cameraLensSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderCubeMesh(cubeMesh.getShapeMesh(), lightingShader, cameraBodyDiffuseMap, cameraBodySpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
         glfwPollEvents();
@@ -265,7 +274,8 @@ void processInput(GLFWwindow* window) {
 }
 
 // render the cube
-void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
+void renderCubeMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) 
+{
     
     // enable z-depth buffer
     glEnable(GL_DEPTH_TEST);
@@ -274,7 +284,7 @@ void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgra
     glBindVertexArray(mesh.vao);
 
     //////////// SHAPE DRAW FUNCTIONS ////////////
-    glUseProgram(shapeProgramID);
+    glUseProgram(lightShader.getID());
 
     // 1. scales object
     glm::mat4 scale = glm::scale(glm::vec3(3.3f, 2.5f, 1.0f));
@@ -304,15 +314,15 @@ void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgra
     }
 
     // retrieves and passes transformation matrices to shader program
-    GLint modelLoc = glGetUniformLocation(shapeProgramID, "model");
-    GLint viewLoc = glGetUniformLocation(shapeProgramID, "view");
-    GLint projLoc = glGetUniformLocation(shapeProgramID, "projection");
+    GLint modelLoc = glGetUniformLocation(lightShader.getID(), "model");
+    GLint viewLoc = glGetUniformLocation(lightShader.getID(), "view");
+    GLint projLoc = glGetUniformLocation(lightShader.getID(), "projection");
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    GLint UVScaleLoc = glGetUniformLocation(shapeProgramID, "uvScale");
+    GLint UVScaleLoc = glGetUniformLocation(lightShader.getID(), "uvScale");
     glUniform2fv(UVScaleLoc, 1, glm::value_ptr(gUVScale));
 
 
@@ -323,7 +333,9 @@ void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgra
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, diffuseMap);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specularMap);
 
     // Draw the triangle.
     glDrawArrays(GL_TRIANGLES, 0, mesh.nVertices); // Draws the triangle
@@ -339,7 +351,8 @@ void renderCubeMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgra
 
 //TODO: fix cylinder renderer
 // render the cylinder
-void renderCylinderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
+void renderCylinderMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) 
+{
  
     // enable z-depth buffer
     glEnable(GL_DEPTH_TEST);
@@ -348,7 +361,7 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampPr
     glBindVertexArray(mesh.vao);
 
     //////////// SHAPE DRAW FUNCTIONS ////////////
-    glUseProgram(shapeProgramID);
+    glUseProgram(lightShader.getID());
 
     // 1. scales object
     glm::mat4 scale = glm::scale(glm::vec3(1.8f, 2.0f, 2.0f));
@@ -379,15 +392,15 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampPr
     }
 
     // retrieves and passes transformation matrices to shader program
-    GLint modelLoc = glGetUniformLocation(shapeProgramID, "model");
-    GLint viewLoc = glGetUniformLocation(shapeProgramID, "view");
-    GLint projLoc = glGetUniformLocation(shapeProgramID, "projection");
+    GLint modelLoc = glGetUniformLocation(lightShader.getID(), "model");
+    GLint viewLoc = glGetUniformLocation(lightShader.getID(), "view");
+    GLint projLoc = glGetUniformLocation(lightShader.getID(), "projection");
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    GLint UVScaleLoc = glGetUniformLocation(shapeProgramID, "uvScale");
+    GLint UVScaleLoc = glGetUniformLocation(lightShader.getID(), "uvScale");
     glUniform2fv(UVScaleLoc, 1, glm::value_ptr(gUVScale));
 
     // wireframe mode
@@ -397,7 +410,9 @@ void renderCylinderMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampPr
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, diffuseMap);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specularMap);
 
     // Draw the triangle.
     glDrawArrays(GL_TRIANGLES, 0, mesh.nVertices); // Draws the triangle
@@ -442,7 +457,7 @@ void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, in
         perspectiveSwitch = !perspectiveSwitch;
 }
 
-void renderPlaneMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgramID, GLuint textureID, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
+void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
     
     // enable z-depth buffer
     glEnable(GL_DEPTH_TEST);
@@ -451,7 +466,7 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgr
     glBindVertexArray(mesh.vao);
 
     //////////// SHAPE DRAW FUNCTIONS ////////////
-    glUseProgram(shapeProgramID);
+    glUseProgram(lightShader.getID());
 
     // 1. scales object
     glm::mat4 scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
@@ -480,15 +495,15 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgr
     }
 
     // retrieves and passes transformation matrices to shader program
-    GLint modelLoc = glGetUniformLocation(shapeProgramID, "model");
-    GLint viewLoc = glGetUniformLocation(shapeProgramID, "view");
-    GLint projLoc = glGetUniformLocation(shapeProgramID, "projection");
+    GLint modelLoc = glGetUniformLocation(lightShader.getID(), "model");
+    GLint viewLoc = glGetUniformLocation(lightShader.getID(), "view");
+    GLint projLoc = glGetUniformLocation(lightShader.getID(), "projection");
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    GLint UVScaleLoc = glGetUniformLocation(shapeProgramID, "uvScale");
+    GLint UVScaleLoc = glGetUniformLocation(lightShader.getID(), "uvScale");
     glUniform2fv(UVScaleLoc, 1, glm::value_ptr(gUVScale));
 
 
@@ -499,7 +514,9 @@ void renderPlaneMesh(const GLMesh& mesh, GLuint shapeProgramID, GLuint lampProgr
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, diffuseMap);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specularMap);
 
     // Draw the triangle.
     glDrawArrays(GL_TRIANGLES, 0, mesh.nVertices); // Draws the triangle
