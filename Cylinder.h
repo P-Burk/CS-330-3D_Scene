@@ -11,11 +11,18 @@ using namespace std;
 
 class Cylinder : public Mesh {
 	public:
-		Cylinder() { buildMesh(this->shapeMesh, this->vertsVector); };
+		Cylinder(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap) {
+			this->lightingShader = litShdr;
+			this->lightCUBEshader = ltCUBEshdr;
+			this->diffuseMap = difMap;
+			this->specularMap = specMap;
+			buildMesh(this->shapeMesh, this->vertsVector);
+		};
 
 	protected:
 
 	private:
+
 		vector<GLfloat> vertsVector = {
             // front
 			0.3f,  0.4f, 0.5f,     0.6f,   0.033f,  // V2  
