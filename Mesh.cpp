@@ -11,6 +11,9 @@ using namespace std;
 Mesh::Mesh() {}
 
 void Mesh::buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>& verticesVector) {
+
+    vertsVector = addNormals(vertsVector);
+
     // creates vertex attribute pointer
     const GLuint vertexFloats = 3;      // number of coordinates per vertex
     const GLuint normalsFloats = 3;       // floats that represent color (r, g, b, a)
@@ -44,7 +47,7 @@ void Mesh::buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>
 }
 
 void Mesh::buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector) {
-    
+
     vertsVector = addNormals(vertsVector);
 
     // creates vertex attribute pointer

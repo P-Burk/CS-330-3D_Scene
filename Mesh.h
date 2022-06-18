@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include "Shader.h"
 
 using namespace std;
 
@@ -32,6 +33,10 @@ protected:
     void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>& verticesVector);
     void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector);
     vector<float> addNormals(vector<float> inputVec);
+    Shader lightingShader;
+    Shader lightCUBEshader;
+    unsigned int diffuseMap;
+    unsigned int specularMap;
 
 private:
 
