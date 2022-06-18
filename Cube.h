@@ -11,7 +11,13 @@ using namespace std;
 
 class Cube : public Mesh {
 public:
-    Cube() { buildMesh(this->shapeMesh, this->vertsVector); };
+    Cube(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap) {
+        this->lightingShader = litShdr;
+        this->lightCUBEshader = ltCUBEshdr;
+        this->diffuseMap = difMap;
+        this->specularMap = specMap;
+        buildMesh(this->shapeMesh, this->vertsVector);
+    };
 
 protected:
 
