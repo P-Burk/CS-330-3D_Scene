@@ -11,12 +11,19 @@ using namespace std;
 
 class Plane : public Mesh {
 	public:
-		Plane() { buildMesh(this->shapeMesh, this->vertsVector); };
+        Plane(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap) {
+            this->lightingShader = litShdr;
+            this->lightCUBEshader = ltCUBEshdr;
+            this->diffuseMap = difMap;
+            this->specularMap = specMap;
+            buildMesh(this->shapeMesh, this->vertsVector);
+        };
 
 	protected:
 
 
 	private:
+
         // PLANE ///////////////////////////////////////////////////////////////////////
         //  v0-----v1
         //  |       | 
