@@ -11,12 +11,19 @@ using namespace std;
 
 class Plane : public Mesh {
 	public:
-		Plane() { buildMesh(this->shapeMesh, this->vertsVector, this->verticesVector); };
+        Plane(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap) {
+            this->lightingShader = litShdr;
+            this->lightCUBEshader = ltCUBEshdr;
+            this->diffuseMap = difMap;
+            this->specularMap = specMap;
+            buildMesh(this->shapeMesh, this->vertsVector);
+        };
 
 	protected:
 
 
 	private:
+
         // PLANE ///////////////////////////////////////////////////////////////////////
         //  v0-----v1
         //  |       | 
@@ -24,18 +31,31 @@ class Plane : public Mesh {
         //  v3-----v2
 
         // Position and Color data
+        //vector<GLfloat> vertsVector = {
+        //    -5.0f, -1.3f, -5.0f,    0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // V0
+        //     5.0f, -1.3f, -5.0f,    0.0f, 1.0f, 0.0f,   1.0f, 1.0f, // V1
+        //    -5.0f, -1.3f,  5.0f,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f, // V3
+
+        //     5.0f, -1.3f,  5.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // V2
+        //     5.0f, -1.3f, -5.0f,    0.0f, 1.0f, 0.0f,   1.0f, 1.0f, // V1
+        //    -5.0f, -1.3f,  5.0f,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f  // V3
+        //};
+
         vector<GLfloat> vertsVector = {
-            -5.0f, -1.3f,  5.0f,    1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 1.0f, // V0
-             5.0f, -1.3f,  5.0f,    1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // V1
-             5.0f, -1.3f, -5.0f,    1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // V2
-            -5.0f, -1.3f, -5.0f,    1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 0.0f  // V3
+             5.0f, -1.3f, -5.0f,      1.0f, 1.0f, // V1
+            -5.0f, -1.3f, -5.0f,      0.0f, 1.0f, // V0
+            -5.0f, -1.3f,  5.0f,      0.0f, 0.0f, // V3
+
+            -5.0f, -1.3f,  5.0f,      0.0f, 0.0f, // V3
+             5.0f, -1.3f,  5.0f,      1.0f, 0.0f, // V2
+             5.0f, -1.3f, -5.0f,      1.0f, 1.0f, // V1
         };
 
-        // Creates a buffer object for the indices
-        vector<GLshort> verticesVector = {
-            0, 1, 3,  // T1
-            2, 1, 3   // T2
-        };
+        //// Creates a buffer object for the indices
+        //vector<GLshort> verticesVector = {
+        //    0, 1, 3,  // T1
+        //    2, 1, 3   // T2
+        //};
 };
 
 #endif
