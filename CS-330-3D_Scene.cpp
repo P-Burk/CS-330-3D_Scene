@@ -1,9 +1,9 @@
 /*
  * Class: CS-330-T5621 Computer Graphics and Visualization
  * Instructor: Malcolm Wabara, M.S
- * Assignment: 5-5 Milestone: Texturing Objects in a 3D Scene
+ * Assignment: 6-5 Milestone: Lighting Complex Objects
  * Student: Preston Burkhardt
- * Date: 05 June 2022
+ * Date: 12 June 2022
  */
 
 #include <GL/glew.h>
