@@ -61,7 +61,7 @@ float ROTATE_Y = 1.0f;
 float ROTATE_Z = 1.0f;
 
 // CAMERA VARIABLES
-Camera camera(glm::vec3(0.0f, 0.0f, 6.0f));
+Camera camera(glm::vec3(0.0f, 3.0f, 10.0f));
 float lastX = WINDOW_WIDTH / 2.0f;
 float lastY = WINDOW_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -73,7 +73,8 @@ bool perspectiveSwitch = false;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
-void renderCubeMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
+void renderCamMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
+void renderSpkrMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void renderCylinderMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void destroyShaderProgram(GLuint programID);
@@ -180,8 +181,8 @@ int main() {
     unsigned int cameraLensSpecularMap = loadTexture(camLensTextureFile);
     unsigned int planeDiffuseMap = loadTexture(woodTextureFile);
     unsigned int planeSpecularMap = loadTexture(woodTextureFile);
-    //unsigned int holderDiffuseMap = loadTexture(holderTexture);
-    //unsigned int holderSpecularMap = loadTexture(holderTexture);
+    unsigned int holderDiffuseMap = loadTexture(holderTexture);
+    unsigned int holderSpecularMap = loadTexture(holderTexture);
 
     //NOTE: for debugging
     //unsigned int cameraBodyDiffuseMap = textureID2;
@@ -202,6 +203,7 @@ int main() {
     Cube cubeMesh(lightingShader, lightCubeShader, cameraBodyDiffuseMap, cameraBodySpecularMap);
     Cylinder cylinderMesh(lightingShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
     Plane planeMesh(lightingShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
+    Cube speakerMesh(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
 
 
     /******* END OF CITED CODE **********************************************************/
@@ -237,8 +239,9 @@ int main() {
 
         //render shapes
         renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader, planeDiffuseMap, planeSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
-        renderCubeMesh(cubeMesh.getShapeMesh(), lightingShader, cameraBodyDiffuseMap, cameraBodySpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderCamMesh(cubeMesh.getShapeMesh(), lightingShader, cameraBodyDiffuseMap, cameraBodySpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader, cameraLensDiffuseMap, cameraLensSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderSpkrMesh(speakerMesh.getShapeMesh(), lightingShader, holderDiffuseMap, holderSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
@@ -288,7 +291,7 @@ void processInput(GLFWwindow* window) {
 }
 
 // render the cube
-void renderCubeMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) 
+void renderCamMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) 
 {
     
     // enable z-depth buffer
@@ -324,6 +327,80 @@ void renderCubeMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuse
         projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
     }
     else {
+        projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    }
+
+    // retrieves and passes transformation matrices to shader program
+    GLint modelLoc = glGetUniformLocation(lightShader.getID(), "model");
+    GLint viewLoc = glGetUniformLocation(lightShader.getID(), "view");
+    GLint projLoc = glGetUniformLocation(lightShader.getID(), "projection");
+
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    GLint UVScaleLoc = glGetUniformLocation(lightShader.getID(), "uvScale");
+    glUniform2fv(UVScaleLoc, 1, glm::value_ptr(gUVScale));
+
+
+    // wireframe mode
+    if (WIREFRAME_MODE == true) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
+    // bind textures on corresponding texture units
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, diffuseMap);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specularMap);
+
+    // Draw the triangle.
+    glDrawArrays(GL_TRIANGLES, 0, mesh.nVertices); // Draws the triangle
+
+    // Deactivate the Vertex Array Object.
+    glBindVertexArray(0);
+    glUseProgram(0);
+
+    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
+    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
+    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
+}
+
+void renderSpkrMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
+    // enable z-depth buffer
+    glEnable(GL_DEPTH_TEST);
+
+    // Activate the VBOs contained within the mesh's VAO.
+    glBindVertexArray(mesh.vao);
+
+    //////////// SHAPE DRAW FUNCTIONS ////////////
+    glUseProgram(lightShader.getID());
+
+    // 1. scales object
+    glm::mat4 scale = glm::scale(glm::vec3(3.9f, 2.7f, 3.3f));
+    //glm::mat4 scale = glm::scale(glm::vec3(5.5f, 2.7f, 3.5f));
+
+    // 2. rotates object 
+    glm::mat4 rotation = glm::mat4(1.0f);
+    // for no rotation, set radians to 0 and X, Y, and Z values to 1
+    rotation = glm::rotate(rotation, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // 3. places object at origin
+    glm::mat4 translation = glm::translate(glm::vec3(3.5f, 0.0f, 0.5f));
+
+    // Transformations are applied in right-to-left order.
+    glm::mat4 model = translation  * rotation * scale;
+    //glm::mat4 model = rotation * scale * translation;
+
+    // Transforms the camera: move the camera back (Z axis)
+    //glm::mat4 view = glm::translate(glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 view = camera.GetViewMatrix();
+
+    // Projection MAtrix
+    glm::mat4 projection;
+    if (perspectiveSwitch) {
+        projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    } else {
         projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
     }
 
