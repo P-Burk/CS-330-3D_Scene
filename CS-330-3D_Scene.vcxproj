@@ -135,6 +135,7 @@
     <ClCompile Include="CS-330-3D_Scene.cpp" />
     <ClCompile Include="Lights.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CS-330-3D_Pyramid\Camera.h" />
@@ -145,6 +146,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\light_cube.fs" />
