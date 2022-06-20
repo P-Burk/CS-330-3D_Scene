@@ -24,6 +24,7 @@
 #include "Cylinder.h"
 #include "Plane.h"
 #include "Lights.h"
+#include "Sphere.h"
 
 
 using namespace std;
@@ -204,6 +205,7 @@ int main() {
     Cylinder cylinderMesh(lightingShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
     Plane planeMesh(lightingShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
     Cube speakerMesh(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
+    Sphere aSphere(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
 
 
     /******* END OF CITED CODE **********************************************************/
