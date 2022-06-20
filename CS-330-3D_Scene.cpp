@@ -540,7 +540,7 @@ void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffu
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(-2.0f, 0.0f, 0.0f));
+    glm::mat4 translation = glm::translate(glm::vec3(-2.0f, -0.1f, 0.0f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = rotation * scale * translation;

@@ -14,7 +14,7 @@ class Sphere : public Mesh
 	public:
         // ctor/dtor
         //Sphere(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap, float radius = 1.0f, int sectorCount = 36, int stackCount = 18, bool smooth = false);
-        Sphere(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap, float radius = 1.0f, int sectorCount = 36, int stackCount = 36, bool smooth = false);
+        Sphere(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap, float radius = 0.8f, int sectorCount = 36, int stackCount = 36, bool smooth = false);
         ~Sphere() {}
 
         //getters/setters
