@@ -42,8 +42,8 @@ glm::vec2 gUVScale(5.0f, 5.0f);
 GLint gTexWrapMode = GL_REPEAT;
 
 // constants for windown attributes
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 600;
+const int WINDOW_WIDTH = 1200;
+const int WINDOW_HEIGHT = 800;
 const char* const WINDOW_TITLE = "6-5 Milestone: Lighting Complex Objects";
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camBodyTextureFile = "resources/textures/Full_camera.png";
@@ -111,6 +111,9 @@ int main() {
     // camera control calls
     glfwSetCursorPosCallback(window, mouseCameraMovement);
     glfwSetScrollCallback(window, scrollCameraSpeed);
+
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
     // GLEW: initialize
