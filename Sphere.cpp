@@ -1,3 +1,11 @@
+/****** CODE CITATION **************************************************************
+* Title: OpenGL Sphere: Sphere.cpp
+* Author: Song Ho Ahn
+* Date Accessed: 18 June 2022
+* Code Version: N/A
+* Availability: https://songho.ca/opengl/gl_sphere.html
+************************************************************************************/
+
 #ifdef _WIN32
 #include <windows.h>    // include windows.h to avoid thousands of compile errors even though this class is not depending on Windows
 #endif

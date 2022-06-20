@@ -1,3 +1,11 @@
+/****** CODE CITATION **************************************************************
+* Title: OpenGL Sphere: Sphere.h
+* Author: Song Ho Ahn
+* Date Accessed: 18 June 2022
+* Code Version: N/A
+* Availability: https://songho.ca/opengl/gl_sphere.html
+************************************************************************************/
+
 #ifndef SPHERE_H
 #define SPHERE_H
 
@@ -46,5 +54,4 @@ class Sphere : public Mesh
         void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector);
         
 };
-
 #endif
