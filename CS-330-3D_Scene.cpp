@@ -26,6 +26,7 @@
 #include "Lights.h"
 #include "Sphere.h"
 #include "Torus.h"
+#include "Speaker.h"
 
 
 using namespace std;
@@ -56,6 +57,7 @@ const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camBodyTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
 const char* tennisBallTexFile = "resources/textures/tennis_ball.png";
+const char* spkrTexture = "resources/textures/speaker.png";
 const char* holderTexture = "resources/textures/brick_wall.jpg";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
@@ -190,6 +192,9 @@ int main() {
     unsigned int holderSpecularMap = loadTexture(holderTexture);
     unsigned int tBallDiffuseMap = loadTexture(tennisBallTexFile);
     unsigned int tBallSpecularMap = loadTexture(tennisBallTexFile);
+    unsigned int spkrDiffuseMap = loadTexture(spkrTexture);
+    unsigned int spkrSpecularMap = loadTexture(spkrTexture);
+
 
     //NOTE: for debugging
     //unsigned int cameraBodyDiffuseMap = textureID2;
@@ -210,7 +215,7 @@ int main() {
     Cube cubeMesh(lightingShader, lightCubeShader, cameraBodyDiffuseMap, cameraBodySpecularMap);
     Cylinder cylinderMesh(lightingShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
     Plane planeMesh(lightingShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
-    Cube speakerMesh(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
+    Speaker speakerMesh(lightingShader, lightCubeShader, spkrDiffuseMap, spkrSpecularMap);
     Sphere aSphere(lightingShader, lightCubeShader, tBallDiffuseMap, tBallSpecularMap);
     Torus aTorus(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
 
@@ -250,7 +255,7 @@ int main() {
         renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader, planeDiffuseMap, planeSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderCamMesh(cubeMesh.getShapeMesh(), lightingShader, cameraBodyDiffuseMap, cameraBodySpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader, cameraLensDiffuseMap, cameraLensSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
-        renderSpkrMesh(speakerMesh.getShapeMesh(), lightingShader, holderDiffuseMap, holderSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderSpkrMesh(speakerMesh.getShapeMesh(), lightingShader, spkrDiffuseMap, spkrSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderSphereMesh(aSphere.getShapeMesh(), lightingShader, tBallDiffuseMap, tBallSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderTorusMesh(aTorus.getShapeMesh(), lightingShader, holderDiffuseMap, holderSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         

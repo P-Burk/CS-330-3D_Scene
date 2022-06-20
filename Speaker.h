@@ -5,11 +5,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
-#include "Cube.h"
+#include "Mesh.h"
 
 using namespace std;
 
-class Speaker : public Cube {
+class Speaker : public Mesh {
 public:
     Speaker(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap) {
         this->lightingShader = litShdr;
