@@ -146,6 +146,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Speaker.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Torus.h" />
   </ItemGroup>
