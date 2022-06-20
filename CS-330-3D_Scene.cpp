@@ -1,9 +1,9 @@
 /*
  * Class: CS-330-T5621 Computer Graphics and Visualization
  * Instructor: Malcolm Wabara, M.S
- * Assignment: 6-5 Milestone: Lighting Complex Objects
+ * Assignment: 7-1 Final Project
  * Student: Preston Burkhardt
- * Date: 12 June 2022
+ * Date: 19 June 2022
  */
 
 #include <GL/glew.h>
@@ -44,7 +44,7 @@ GLint gTexWrapMode = GL_REPEAT;
 // constants for windown attributes
 const int WINDOW_WIDTH = 1200;
 const int WINDOW_HEIGHT = 800;
-const char* const WINDOW_TITLE = "6-5 Milestone: Lighting Complex Objects";
+const char* const WINDOW_TITLE = "7-1 Final Project";
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camBodyTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
@@ -95,7 +95,33 @@ unsigned int loadTexture(char const* path);
 
 
 int main() {
-    cout << WINDOW_TITLE << endl;
+    cout << WINDOW_TITLE << endl << endl;
+
+    cout << "CONTROLS: " << endl;
+    cout << "   MOVEMENT - " << endl;
+    cout << "      W - Forward" << endl;
+    cout << "      A - Left" << endl;
+    cout << "      S - Backward" << endl;
+    cout << "      D - Forward" << endl;
+    cout << "      Q - Up" << endl;
+    cout << "      E - Down" << endl;
+    cout << "      Mouse - Pan Camera" << endl;
+    cout << "      Scroll Wheel - Adjust Movement Speed" << endl << endl;
+
+    cout << "   PERSPECTIVE - " << endl;
+    cout << "      P - CHange Persective" << endl << endl;
+
+    cout << "   LIGHTS - " << endl;
+    cout << "      O - Toggle Light Position Renders" << endl;
+    cout << "      1 - Toggle Default Light Color" << endl;
+    cout << "      2 - Toggle Red Light Color" << endl;
+    cout << "      3 - Toggle Green Light Color" << endl;
+    cout << "      4 - Toggle Blue Light Color" << endl << endl;
+
+    cout << "   WINDOW - " << endl;
+    cout << "      ESC - Close Window" << endl << endl;
+
+
 
     // initialize GLFW and specify versions + profile to be used
     glfwInit();
