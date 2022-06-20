@@ -40,7 +40,7 @@ void Lights::buildLights(GLMesh& mesh, vector<float>& vertices, Shader& lighting
     lightingShader.setInt("material.specular", 1);
 }
 
-void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch) {
+void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch, bool bulbSwitch) {
 
     // be sure to activate shader when setting uniforms/drawing objects
     this->lightingShader.use();
@@ -121,28 +121,31 @@ void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat
         passedProjection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
     }
 
-    // draw the lamps
-    this->lightCubeShader.use();
-    this->lightCubeShader.setMat4("projection", passedProjection);
-    this->lightCubeShader.setMat4("view", passedView);
+    if (bulbSwitch) {
+        // draw the lamps
+        this->lightCubeShader.use();
+        this->lightCubeShader.setMat4("projection", passedProjection);
+        this->lightCubeShader.setMat4("view", passedView);
 
-    //draw light "bulbs" for point lights
-    glBindVertexArray(this->lightCubeVAO);
-    for (unsigned int i = 0; i < 1; i++) {
+        //draw light "bulbs" for point lights
+        glBindVertexArray(this->lightCubeVAO);
+        for (unsigned int i = 0; i < 1; i++) {
+            passedModel = glm::mat4(1.0f);
+            passedModel = glm::translate(passedModel, passedpointLightPositions[i]);
+            passedModel = glm::scale(passedModel, glm::vec3(0.2f));     //sets size of bulbs
+            this->lightCubeShader.setMat4("model", passedModel);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+        //render the spot light
+        glBindVertexArray(this->lightCubeVAO);
         passedModel = glm::mat4(1.0f);
-        passedModel = glm::translate(passedModel, passedpointLightPositions[i]);
-        passedModel = glm::scale(passedModel, glm::vec3(0.2f));     //sets size of bulbs
+        passedModel = glm::translate(passedModel, this->spotLightPos);
+        passedModel = glm::scale(passedModel, glm::vec3(0.4f));     //sets size of bulbs
         this->lightCubeShader.setMat4("model", passedModel);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-    //render the spot light
-    glBindVertexArray(this->lightCubeVAO);
-    passedModel = glm::mat4(1.0f);
-    passedModel = glm::translate(passedModel, this->spotLightPos);
-    passedModel = glm::scale(passedModel, glm::vec3(0.4f));     //sets size of bulbs
-    this->lightCubeShader.setMat4("model", passedModel);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 vector<float> Lights::addNormals(vector<float> inputVec) {

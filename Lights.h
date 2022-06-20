@@ -43,7 +43,7 @@ class Lights {
         }
 
         //FUNCTIONS
-        void renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch);
+        void renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch, bool bulbSwitch);
         unsigned int getLightCubeVAO() { return this->lightCubeVAO; }
 
 
