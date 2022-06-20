@@ -70,7 +70,10 @@ bool perspectiveSwitch = false;
 
 //light switches
 bool lightBulbs = true;
-bool lightColor = false;
+bool defaultLight = true;
+bool redLight = false;
+bool blueLight = false;
+bool greenLight = false;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -83,8 +86,7 @@ void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
 void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset);
-void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, int mods);
-void bulbToggle(GLFWwindow* window, int key, int scancode, int action, int mods);
+void toggles(GLFWwindow* window, int key, int scancode, int action, int mods);
 void flipImageVertically(unsigned char* image, int width, int height, int channels);
 void destroyTexture(GLuint textureId);
 unsigned int loadTexture(char const* path);
@@ -214,7 +216,7 @@ int main() {
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        lights.renderLights(pointLightPositions, projection, view, model, perspectiveSwitch, lightBulbs);
+        lights.renderLights(pointLightPositions, projection, view, model, perspectiveSwitch, lightBulbs, defaultLight, redLight, greenLight, blueLight);
 
         //render shapes
         renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader, planeDiffuseMap, planeSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
@@ -271,10 +273,12 @@ void processInput(GLFWwindow* window) {
         camera.ProcessKeyboard(DOWN, deltaTime);
     
     // perspective switch
-    glfwSetKeyCallback(window, perspectiveToggle);
+    glfwSetKeyCallback(window, toggles);
 
     //light controls
-    glfwSetKeyCallback(window, bulbToggle);
+    //glfwSetKeyCallback(window, bulbToggle);
+    //glfwSetKeyCallback(window, defaultLightToggle);
+    //glfwSetKeyCallback(window, redLightToggle);
 }
 
 // render the cube
@@ -655,14 +659,37 @@ void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset)
     camera.ProcessMouseScroll_Speed(yPosOffset);
 }
 
-void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_P && action == GLFW_PRESS)
+void toggles(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_P && action == GLFW_PRESS) {    //perspective
         perspectiveSwitch = !perspectiveSwitch;
-}
-
-void bulbToggle(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_O && action == GLFW_PRESS)
+    }
+    if (key == GLFW_KEY_O && action == GLFW_PRESS) {    //render light bulbs
         lightBulbs = !lightBulbs;
+    }
+    if (key == GLFW_KEY_1 && action == GLFW_PRESS) {    //default light color on/of
+        defaultLight = !defaultLight;
+        redLight = false;
+        greenLight = false;
+        blueLight = false;
+    }
+    if (key == GLFW_KEY_2 && action == GLFW_PRESS) {    //red lights on/off
+        defaultLight = false;
+        redLight = !redLight;
+        greenLight = false;
+        blueLight = false;
+    }
+    if (key == GLFW_KEY_3 && action == GLFW_PRESS) {    //green lights on/off
+        defaultLight = false;
+        redLight = false;
+        greenLight = !greenLight;
+        blueLight = false;
+    }
+    if (key == GLFW_KEY_4 && action == GLFW_PRESS) {    //blue lights on/off
+        defaultLight = false;
+        redLight = false;
+        greenLight = false;
+        blueLight = !blueLight;
+    }
 }
 
 void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
