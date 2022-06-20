@@ -17,28 +17,28 @@ struct GLMesh {
 };
 
 class Mesh {
-public:
-    Mesh();
-    GLMesh getShapeMesh() { return this->shapeMesh; }
-    GLuint getMeshVAO() { return this->shapeMesh.vao; }
-    GLuint getMeshVBO(int VBOindex) { return this->shapeMesh.vbo; }
-    GLuint getMeshNVertices() { return this->shapeMesh.nVertices; }
-    void destoryMesh();
+    public:
+        Mesh();
+        GLMesh getShapeMesh() { return this->shapeMesh; }
+        GLuint getMeshVAO() { return this->shapeMesh.vao; }
+        GLuint getMeshVBO(int VBOindex) { return this->shapeMesh.vbo; }
+        GLuint getMeshNVertices() { return this->shapeMesh.nVertices; }
+        void destoryMesh();
 
 
-protected:
-    GLMesh shapeMesh;
-    vector<GLshort> vertsVector;
-    vector<GLfloat> verticesVector;
-    void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>& verticesVector);
-    void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector);
-    vector<float> addNormals(vector<float> inputVec);
-    Shader lightingShader;
-    Shader lightCUBEshader;
-    unsigned int diffuseMap;
-    unsigned int specularMap;
+    protected:
+        GLMesh shapeMesh;
+        vector<GLshort> vertsVector;
+        vector<GLfloat> verticesVector;
+        void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector, vector<GLshort>& verticesVector);
+        void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector);
+        vector<float> addNormals(vector<float> inputVec);
+        Shader lightingShader;
+        Shader lightCUBEshader;
+        unsigned int diffuseMap;
+        unsigned int specularMap;
 
-private:
+    private:
 
 };
 #endif

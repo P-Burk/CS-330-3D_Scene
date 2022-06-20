@@ -40,63 +40,291 @@ void Lights::buildLights(GLMesh& mesh, vector<float>& vertices, Shader& lighting
     lightingShader.setInt("material.specular", 1);
 }
 
-void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch) {
+void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat4& passedProjection, glm::mat4& passedView, glm::mat4& passedModel, bool perspectiveSwitch, bool bulbSwitch, bool defaultLight,
+    bool redLight, bool greenLight, bool blueLight) 
+{
+    if (defaultLight && !redLight && !greenLight && !blueLight) {
+        // be sure to activate shader when setting uniforms/drawing objects
+        this->lightingShader.use();
+        this->lightingShader.setVec3("viewPos", this->camera.Position);
+        this->lightingShader.setFloat("material.shininess", 32.0f);
 
-    // be sure to activate shader when setting uniforms/drawing objects
-    this->lightingShader.use();
-    this->lightingShader.setVec3("viewPos", this->camera.Position);
-    this->lightingShader.setFloat("material.shininess", 32.0f);
+        /////////////////////////// LIGHT INFORMATION ///////////////////////////
+        // directional light
+        this->lightingShader.setVec3("dirLight.direction", 0.0f, -1.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
+        this->lightingShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
+        //TODO: MOVE ONE POINT LIGHT ABOVE/BEHIND CAMERA AND LIGHT IT
+        // point light 1
+        this->lightingShader.setVec3("pointLights[0].position", passedpointLightPositions[0]);
+        this->lightingShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("pointLights[0].diffuse", 4.0f, 4.0f, 4.0f);
+        this->lightingShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setFloat("pointLights[0].constant", 1.0f);
+        this->lightingShader.setFloat("pointLights[0].linear", 0.09f);
+        this->lightingShader.setFloat("pointLights[0].quadratic", 0.032f);
+        // point light 2
+        //this->lightingShader.setVec3("pointLights[1].position", passedpointLightPositions[1]);
+        //this->lightingShader.setVec3("pointLights[1].ambient", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].diffuse", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].specular", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setFloat("pointLights[1].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[1].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
+        //// point light 3
+        //this->lightingShader.setVec3("pointLights[2].position", passedpointLightPositions[2]);
+        //this->lightingShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[2].quadratic", 0.032f);
+        //// point light 4
+        //this->lightingShader.setVec3("pointLights[3].position", passedpointLightPositions[3]);
+        //this->lightingShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[3].quadratic", 0.032f);
+        // spotLight
+        this->lightingShader.setVec3("spotLight.position", this->spotLightPos);
+        this->lightingShader.setVec3("spotLight.direction", 0.0f, -1.0f, -0.95f);
+        this->lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("spotLight.diffuse", 4.5f, 4.5f, 4.5f);
+        this->lightingShader.setVec3("spotLight.specular", 10.0f, 10.0f, 10.0f);
+        this->lightingShader.setFloat("spotLight.constant", 1.0f);
+        this->lightingShader.setFloat("spotLight.linear", 0.09f);
+        this->lightingShader.setFloat("spotLight.quadratic", 0.032f);
+        this->lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(15.5f)));
+        this->lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(30.0f)));
+    } else if (!defaultLight && !redLight && !greenLight && !blueLight) {
+        // be sure to activate shader when setting uniforms/drawing objects
+        this->lightingShader.use();
+        this->lightingShader.setVec3("viewPos", this->camera.Position);
+        this->lightingShader.setFloat("material.shininess", 32.0f);
 
-    /////////////////////////// LIGHT INFORMATION ///////////////////////////
-    // directional light
-    this->lightingShader.setVec3("dirLight.direction", 0.0f, -1.0f, 0.0f);
-    this->lightingShader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
-    this->lightingShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
-    this->lightingShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
-    //TODO: MOVE ONE POINT LIGHT ABOVE/BEHIND CAMERA AND LIGHT IT
-    // point light 1
-    this->lightingShader.setVec3("pointLights[0].position", passedpointLightPositions[0]);
-    this->lightingShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
-    this->lightingShader.setVec3("pointLights[0].diffuse", 4.0f, 4.0f, 4.0f);
-    this->lightingShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
-    this->lightingShader.setFloat("pointLights[0].constant", 1.0f);
-    this->lightingShader.setFloat("pointLights[0].linear", 0.09f);
-    this->lightingShader.setFloat("pointLights[0].quadratic", 0.032f);
-    // point light 2
-    //this->lightingShader.setVec3("pointLights[1].position", passedpointLightPositions[1]);
-    //this->lightingShader.setVec3("pointLights[1].ambient", 0.0f, 0.0f, 0.0f);
-    //this->lightingShader.setVec3("pointLights[1].diffuse", 0.0f, 0.0f, 0.0f);
-    //this->lightingShader.setVec3("pointLights[1].specular", 0.0f, 0.0f, 0.0f);
-    //this->lightingShader.setFloat("pointLights[1].constant", 1.0f);
-    //this->lightingShader.setFloat("pointLights[1].linear", 0.09f);
-    //this->lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
-    //// point light 3
-    //this->lightingShader.setVec3("pointLights[2].position", passedpointLightPositions[2]);
-    //this->lightingShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-    //this->lightingShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-    //this->lightingShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-    //this->lightingShader.setFloat("pointLights[2].constant", 1.0f);
-    //this->lightingShader.setFloat("pointLights[2].linear", 0.09f);
-    //this->lightingShader.setFloat("pointLights[2].quadratic", 0.032f);
-    //// point light 4
-    //this->lightingShader.setVec3("pointLights[3].position", passedpointLightPositions[3]);
-    //this->lightingShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-    //this->lightingShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-    //this->lightingShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-    //this->lightingShader.setFloat("pointLights[3].constant", 1.0f);
-    //this->lightingShader.setFloat("pointLights[3].linear", 0.09f);
-    //this->lightingShader.setFloat("pointLights[3].quadratic", 0.032f);
-    // spotLight
-    this->lightingShader.setVec3("spotLight.position", this->spotLightPos);
-    this->lightingShader.setVec3("spotLight.direction", 0.0f, -1.0f, -0.95f);
-    this->lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-    this->lightingShader.setVec3("spotLight.diffuse", 4.5f, 4.5f, 4.5f);
-    this->lightingShader.setVec3("spotLight.specular", 10.0f, 10.0f, 10.0f);
-    this->lightingShader.setFloat("spotLight.constant", 1.0f);
-    this->lightingShader.setFloat("spotLight.linear", 0.09f);
-    this->lightingShader.setFloat("spotLight.quadratic", 0.032f);
-    this->lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(15.5f)));
-    this->lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(30.0f)));
+        /////////////////////////// LIGHT INFORMATION ///////////////////////////
+        // directional light
+        this->lightingShader.setVec3("dirLight.direction", 0.0f, -1.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
+        this->lightingShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
+        //TODO: MOVE ONE POINT LIGHT ABOVE/BEHIND CAMERA AND LIGHT IT
+        // point light 1
+        this->lightingShader.setVec3("pointLights[0].position", passedpointLightPositions[0]);
+        this->lightingShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("pointLights[0].diffuse", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setFloat("pointLights[0].constant", 1.0f);
+        this->lightingShader.setFloat("pointLights[0].linear", 0.09f);
+        this->lightingShader.setFloat("pointLights[0].quadratic", 0.032f);
+        // point light 2
+        //this->lightingShader.setVec3("pointLights[1].position", passedpointLightPositions[1]);
+        //this->lightingShader.setVec3("pointLights[1].ambient", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].diffuse", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].specular", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setFloat("pointLights[1].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[1].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
+        //// point light 3
+        //this->lightingShader.setVec3("pointLights[2].position", passedpointLightPositions[2]);
+        //this->lightingShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[2].quadratic", 0.032f);
+        //// point light 4
+        //this->lightingShader.setVec3("pointLights[3].position", passedpointLightPositions[3]);
+        //this->lightingShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[3].quadratic", 0.032f);
+        // spotLight
+        this->lightingShader.setVec3("spotLight.position", this->spotLightPos);
+        this->lightingShader.setVec3("spotLight.direction", 0.0f, -1.0f, -0.95f);
+        this->lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("spotLight.specular", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setFloat("spotLight.constant", 1.0f);
+        this->lightingShader.setFloat("spotLight.linear", 0.09f);
+        this->lightingShader.setFloat("spotLight.quadratic", 0.032f);
+        this->lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(15.5f)));
+        this->lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(30.0f)));
+    } else if (!defaultLight && redLight) {
+        // be sure to activate shader when setting uniforms/drawing objects
+        this->lightingShader.use();
+        this->lightingShader.setVec3("viewPos", this->camera.Position);
+        this->lightingShader.setFloat("material.shininess", 32.0f);
+
+        /////////////////////////// LIGHT INFORMATION ///////////////////////////
+        // directional light
+        this->lightingShader.setVec3("dirLight.direction", 0.0f, -1.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
+        this->lightingShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
+        //TODO: MOVE ONE POINT LIGHT ABOVE/BEHIND CAMERA AND LIGHT IT
+        // point light 1
+        this->lightingShader.setVec3("pointLights[0].position", passedpointLightPositions[0]);
+        this->lightingShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("pointLights[0].diffuse", 4.0f, 1.0f, 1.0f);
+        this->lightingShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setFloat("pointLights[0].constant", 1.0f);
+        this->lightingShader.setFloat("pointLights[0].linear", 0.09f);
+        this->lightingShader.setFloat("pointLights[0].quadratic", 0.032f);
+        // point light 2
+        //this->lightingShader.setVec3("pointLights[1].position", passedpointLightPositions[1]);
+        //this->lightingShader.setVec3("pointLights[1].ambient", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].diffuse", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].specular", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setFloat("pointLights[1].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[1].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
+        //// point light 3
+        //this->lightingShader.setVec3("pointLights[2].position", passedpointLightPositions[2]);
+        //this->lightingShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[2].quadratic", 0.032f);
+        //// point light 4
+        //this->lightingShader.setVec3("pointLights[3].position", passedpointLightPositions[3]);
+        //this->lightingShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[3].quadratic", 0.032f);
+        // spotLight
+        this->lightingShader.setVec3("spotLight.position", this->spotLightPos);
+        this->lightingShader.setVec3("spotLight.direction", 0.0f, -1.0f, -0.95f);
+        this->lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("spotLight.diffuse", 4.5f, 1.5f, 1.5f);
+        this->lightingShader.setVec3("spotLight.specular", 10.0f, 2.0f, 2.0f);
+        this->lightingShader.setFloat("spotLight.constant", 1.0f);
+        this->lightingShader.setFloat("spotLight.linear", 0.09f);
+        this->lightingShader.setFloat("spotLight.quadratic", 0.032f);
+        this->lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(15.5f)));
+        this->lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(30.0f)));
+    } else if (!defaultLight && !redLight && greenLight && !blueLight) {
+        // be sure to activate shader when setting uniforms/drawing objects
+        this->lightingShader.use();
+        this->lightingShader.setVec3("viewPos", this->camera.Position);
+        this->lightingShader.setFloat("material.shininess", 32.0f);
+
+        /////////////////////////// LIGHT INFORMATION ///////////////////////////
+        // directional light
+        this->lightingShader.setVec3("dirLight.direction", 0.0f, -1.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
+        this->lightingShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
+        //TODO: MOVE ONE POINT LIGHT ABOVE/BEHIND CAMERA AND LIGHT IT
+        // point light 1
+        this->lightingShader.setVec3("pointLights[0].position", passedpointLightPositions[0]);
+        this->lightingShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("pointLights[0].diffuse", 1.0f, 4.0f, 1.0f);
+        this->lightingShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setFloat("pointLights[0].constant", 1.0f);
+        this->lightingShader.setFloat("pointLights[0].linear", 0.09f);
+        this->lightingShader.setFloat("pointLights[0].quadratic", 0.032f);
+        // point light 2
+        //this->lightingShader.setVec3("pointLights[1].position", passedpointLightPositions[1]);
+        //this->lightingShader.setVec3("pointLights[1].ambient", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].diffuse", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].specular", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setFloat("pointLights[1].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[1].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
+        //// point light 3
+        //this->lightingShader.setVec3("pointLights[2].position", passedpointLightPositions[2]);
+        //this->lightingShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[2].quadratic", 0.032f);
+        //// point light 4
+        //this->lightingShader.setVec3("pointLights[3].position", passedpointLightPositions[3]);
+        //this->lightingShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[3].quadratic", 0.032f);
+        // spotLight
+        this->lightingShader.setVec3("spotLight.position", this->spotLightPos);
+        this->lightingShader.setVec3("spotLight.direction", 0.0f, -1.0f, -0.95f);
+        this->lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("spotLight.diffuse", 1.5f, 4.5f, 1.5f);
+        this->lightingShader.setVec3("spotLight.specular", 10.0f, 2.0f, 2.0f);
+        this->lightingShader.setFloat("spotLight.constant", 1.0f);
+        this->lightingShader.setFloat("spotLight.linear", 0.09f);
+        this->lightingShader.setFloat("spotLight.quadratic", 0.032f);
+        this->lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(15.5f)));
+        this->lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(30.0f)));
+    } else if (!defaultLight && !redLight && !greenLight && blueLight) {
+        // be sure to activate shader when setting uniforms/drawing objects
+        this->lightingShader.use();
+        this->lightingShader.setVec3("viewPos", this->camera.Position);
+        this->lightingShader.setFloat("material.shininess", 32.0f);
+
+        /////////////////////////// LIGHT INFORMATION ///////////////////////////
+        // directional light
+        this->lightingShader.setVec3("dirLight.direction", 0.0f, -1.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
+        this->lightingShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
+        //TODO: MOVE ONE POINT LIGHT ABOVE/BEHIND CAMERA AND LIGHT IT
+        // point light 1
+        this->lightingShader.setVec3("pointLights[0].position", passedpointLightPositions[0]);
+        this->lightingShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("pointLights[0].diffuse", 1.0f, 1.0f, 4.0f);
+        this->lightingShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setFloat("pointLights[0].constant", 1.0f);
+        this->lightingShader.setFloat("pointLights[0].linear", 0.09f);
+        this->lightingShader.setFloat("pointLights[0].quadratic", 0.032f);
+        // point light 2
+        //this->lightingShader.setVec3("pointLights[1].position", passedpointLightPositions[1]);
+        //this->lightingShader.setVec3("pointLights[1].ambient", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].diffuse", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setVec3("pointLights[1].specular", 0.0f, 0.0f, 0.0f);
+        //this->lightingShader.setFloat("pointLights[1].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[1].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
+        //// point light 3
+        //this->lightingShader.setVec3("pointLights[2].position", passedpointLightPositions[2]);
+        //this->lightingShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[2].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[2].quadratic", 0.032f);
+        //// point light 4
+        //this->lightingShader.setVec3("pointLights[3].position", passedpointLightPositions[3]);
+        //this->lightingShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+        //this->lightingShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+        //this->lightingShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].constant", 1.0f);
+        //this->lightingShader.setFloat("pointLights[3].linear", 0.09f);
+        //this->lightingShader.setFloat("pointLights[3].quadratic", 0.032f);
+        // spotLight
+        this->lightingShader.setVec3("spotLight.position", this->spotLightPos);
+        this->lightingShader.setVec3("spotLight.direction", 0.0f, -1.0f, -0.95f);
+        this->lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        this->lightingShader.setVec3("spotLight.diffuse", 1.5f, 1.5f, 4.5f);
+        this->lightingShader.setVec3("spotLight.specular", 10.0f, 2.0f, 2.0f);
+        this->lightingShader.setFloat("spotLight.constant", 1.0f);
+        this->lightingShader.setFloat("spotLight.linear", 0.09f);
+        this->lightingShader.setFloat("spotLight.quadratic", 0.032f);
+        this->lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(15.5f)));
+        this->lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(30.0f)));
+    }
+    
 
 
     //view and projection transformations
@@ -121,28 +349,31 @@ void Lights::renderLights(vector<glm::vec3>& passedpointLightPositions, glm::mat
         passedProjection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
     }
 
-    // draw the lamps
-    this->lightCubeShader.use();
-    this->lightCubeShader.setMat4("projection", passedProjection);
-    this->lightCubeShader.setMat4("view", passedView);
+    if (bulbSwitch) {
+        // draw the lamps
+        this->lightCubeShader.use();
+        this->lightCubeShader.setMat4("projection", passedProjection);
+        this->lightCubeShader.setMat4("view", passedView);
 
-    //draw light "bulbs" for point lights
-    glBindVertexArray(this->lightCubeVAO);
-    for (unsigned int i = 0; i < 1; i++) {
+        //draw light "bulbs" for point lights
+        glBindVertexArray(this->lightCubeVAO);
+        for (unsigned int i = 0; i < 1; i++) {
+            passedModel = glm::mat4(1.0f);
+            passedModel = glm::translate(passedModel, passedpointLightPositions[i]);
+            passedModel = glm::scale(passedModel, glm::vec3(0.2f));     //sets size of bulbs
+            this->lightCubeShader.setMat4("model", passedModel);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+        //render the spot light
+        glBindVertexArray(this->lightCubeVAO);
         passedModel = glm::mat4(1.0f);
-        passedModel = glm::translate(passedModel, passedpointLightPositions[i]);
-        passedModel = glm::scale(passedModel, glm::vec3(0.2f));     //sets size of bulbs
+        passedModel = glm::translate(passedModel, this->spotLightPos);
+        passedModel = glm::scale(passedModel, glm::vec3(0.4f));     //sets size of bulbs
         this->lightCubeShader.setMat4("model", passedModel);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-    //render the spot light
-    glBindVertexArray(this->lightCubeVAO);
-    passedModel = glm::mat4(1.0f);
-    passedModel = glm::translate(passedModel, this->spotLightPos);
-    passedModel = glm::scale(passedModel, glm::vec3(0.4f));     //sets size of bulbs
-    this->lightCubeShader.setMat4("model", passedModel);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 vector<float> Lights::addNormals(vector<float> inputVec) {

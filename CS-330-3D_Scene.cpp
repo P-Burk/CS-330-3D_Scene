@@ -1,9 +1,9 @@
 /*
  * Class: CS-330-T5621 Computer Graphics and Visualization
  * Instructor: Malcolm Wabara, M.S
- * Assignment: 6-5 Milestone: Lighting Complex Objects
+ * Assignment: 7-1 Final Project
  * Student: Preston Burkhardt
- * Date: 12 June 2022
+ * Date: 19 June 2022
  */
 
 #include <GL/glew.h>
@@ -38,21 +38,13 @@ using namespace std;
 
 
 // initialize mesh and shader program variables
-GLuint shapeProgramID;
-GLuint lampProgramID;
-GLuint shapeProgramID2;
-GLuint lampProgramID2;
-GLuint textureID1;
-GLuint textureID2;
-GLuint textureID3;
 glm::vec2 gUVScale(5.0f, 5.0f);
 GLint gTexWrapMode = GL_REPEAT;
 
 // constants for windown attributes
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 600;
-const char* const WINDOW_TITLE = "6-5 Milestone: Lighting Complex Objects";
-//TODO: will need to bind specular and diffuse texture for each texture used in the scene
+const int WINDOW_WIDTH = 1200;
+const int WINDOW_HEIGHT = 800;
+const char* const WINDOW_TITLE = "7-1 Final Project";
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camBodyTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
@@ -76,6 +68,13 @@ float lastFrame = 0.0f;
 // perspective switch
 bool perspectiveSwitch = false;
 
+//light switches
+bool lightBulbs = true;
+bool defaultLight = true;
+bool redLight = false;
+bool blueLight = false;
+bool greenLight = false;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void renderCamMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
@@ -84,13 +83,11 @@ void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
 void renderCylinderMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
-void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
 void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset);
-void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, int mods);
+void toggles(GLFWwindow* window, int key, int scancode, int action, int mods);
 void flipImageVertically(unsigned char* image, int width, int height, int channels);
-bool createTexture(const char* filename, GLuint& textureId);
 void destroyTexture(GLuint textureId);
 unsigned int loadTexture(char const* path);
 
@@ -98,7 +95,33 @@ unsigned int loadTexture(char const* path);
 
 
 int main() {
-    cout << WINDOW_TITLE << endl;
+    cout << WINDOW_TITLE << endl << endl;
+
+    cout << "CONTROLS: " << endl;
+    cout << "   MOVEMENT - " << endl;
+    cout << "      W - Forward" << endl;
+    cout << "      A - Left" << endl;
+    cout << "      S - Backward" << endl;
+    cout << "      D - Forward" << endl;
+    cout << "      Q - Up" << endl;
+    cout << "      E - Down" << endl;
+    cout << "      Mouse - Pan Camera" << endl;
+    cout << "      Scroll Wheel - Adjust Movement Speed" << endl << endl;
+
+    cout << "   PERSPECTIVE - " << endl;
+    cout << "      P - CHange Persective" << endl << endl;
+
+    cout << "   LIGHTS - " << endl;
+    cout << "      O - Toggle Light Position Renders" << endl;
+    cout << "      1 - Toggle Default Light Color" << endl;
+    cout << "      2 - Toggle Red Light Color" << endl;
+    cout << "      3 - Toggle Green Light Color" << endl;
+    cout << "      4 - Toggle Blue Light Color" << endl << endl;
+
+    cout << "   WINDOW - " << endl;
+    cout << "      ESC - Close Window" << endl << endl;
+
+
 
     // initialize GLFW and specify versions + profile to be used
     glfwInit();
@@ -122,6 +145,9 @@ int main() {
     glfwSetCursorPosCallback(window, mouseCameraMovement);
     glfwSetScrollCallback(window, scrollCameraSpeed);
 
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 
     // GLEW: initialize
     // ----------------
@@ -141,27 +167,6 @@ int main() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    // initialize AFTER glewExperimental to avoid error "Access violation.... 0X00000000"
-    //Cube cubeMesh;
-    //Cylinder cylinderMesh;
-    //Plane planeMesh;
-    
-    // Load texture
-    if (!createTexture(woodTextureFile, textureID1)) {
-        cout << "Failed to load texture " << woodTextureFile << endl;
-        return EXIT_FAILURE;
-    }
-    // Load texture
-    if (!createTexture(camBodyTextureFile, textureID2)) {
-        cout << "Failed to load texture " << camBodyTextureFile << endl;
-        return EXIT_FAILURE;
-    }
-    // Load texture
-    if (!createTexture(camLensTextureFile, textureID3)) {
-        cout << "Failed to load texture " << camLensTextureFile << endl;
-        return EXIT_FAILURE;
-    }
-
     /****** CODE CITATION **************************************************************
     * Title: Learn OpenGL: multiple_lights_exercise1.cpp
     * Author: Joey de Vries
@@ -179,9 +184,11 @@ int main() {
     };
     glm::vec3 spotLightPos(0.0f, 6.0f, 13.0f);
 
+    //create shaders
     Shader lightingShader("include/multiple_lights.vs", "include/multiple_lights.fs");
     Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
 
+    //load image maps
     unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
     unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
     unsigned int cameraLensDiffuseMap = loadTexture(camLensTextureFile);
@@ -195,37 +202,23 @@ int main() {
     unsigned int spkrDiffuseMap = loadTexture(spkrTexture);
     unsigned int spkrSpecularMap = loadTexture(spkrTexture);
 
-
-    //NOTE: for debugging
-    //unsigned int cameraBodyDiffuseMap = textureID2;
-    //unsigned int cameraBodySpecularMap = textureID2;
-    //unsigned int cameraLensDiffuseMap = textureID3;
-    //unsigned int cameraLensSpecularMap = textureID3;
-    //unsigned int planeDiffuseMap = textureID1;
-    //unsigned int planeSpecularMap = textureID1;
-    //unsigned int holderDiffuseMap = textureID1;
-    //unsigned int holderSpecularMap =textureID1;
-
+    //set diffuse and specular texture identifiers
     lightingShader.use();
     lightingShader.setInt("material.diffuse", 0);
     lightingShader.setInt("material.specular", 1);
 
+    /******* END OF CITED CODE **********************************************************/
+
+    //initialize lights
     Lights lights(lightingShader, lightCubeShader, camera, planeDiffuseMap, planeSpecularMap, pointLightPositions, spotLightPos);
 
+    //initialize and build shapes
     Cube cubeMesh(lightingShader, lightCubeShader, cameraBodyDiffuseMap, cameraBodySpecularMap);
     Cylinder cylinderMesh(lightingShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
     Plane planeMesh(lightingShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
     Speaker speakerMesh(lightingShader, lightCubeShader, spkrDiffuseMap, spkrSpecularMap);
     Sphere aSphere(lightingShader, lightCubeShader, tBallDiffuseMap, tBallSpecularMap);
     Torus aTorus(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
-
-
-    /******* END OF CITED CODE **********************************************************/
-
-
-    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-    // We set the texture as texture unit 0
-    //glUniform1i(glGetUniformLocation(shapeProgramID, "TEXTURE"), 0);
 
     // while loop to continually render until user closes window
     while (!glfwWindowShouldClose(window)) {
@@ -249,7 +242,7 @@ int main() {
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        lights.renderLights(pointLightPositions, projection, view, model, perspectiveSwitch);
+        lights.renderLights(pointLightPositions, projection, view, model, perspectiveSwitch, lightBulbs, defaultLight, redLight, greenLight, blueLight);
 
         //render shapes
         renderPlaneMesh(planeMesh.getShapeMesh(), lightingShader, planeDiffuseMap, planeSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
@@ -269,6 +262,9 @@ int main() {
     cylinderMesh.destoryMesh();
     cubeMesh.destoryMesh();
     planeMesh.destoryMesh();
+    speakerMesh.destoryMesh();
+    aTorus.destoryMesh();
+    aSphere.destoryMesh();
     glfwTerminate();
     return 0;
 }
@@ -303,7 +299,12 @@ void processInput(GLFWwindow* window) {
         camera.ProcessKeyboard(DOWN, deltaTime);
     
     // perspective switch
-    glfwSetKeyCallback(window, perspectiveToggle);
+    glfwSetKeyCallback(window, toggles);
+
+    //light controls
+    //glfwSetKeyCallback(window, bulbToggle);
+    //glfwSetKeyCallback(window, defaultLightToggle);
+    //glfwSetKeyCallback(window, redLightToggle);
 }
 
 // render the cube
@@ -376,10 +377,6 @@ void renderCamMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseM
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 void renderSpkrMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
@@ -450,10 +447,6 @@ void renderSpkrMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuse
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 //TODO: fix cylinder renderer
@@ -527,10 +520,6 @@ void renderCylinderMesh(const GLMesh& mesh, Shader lightShader, unsigned int dif
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
@@ -590,6 +579,8 @@ void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffu
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+    //tennis ball isn't reflective, so dont use specular mapping
     //glActiveTexture(GL_TEXTURE1);
     //glBindTexture(GL_TEXTURE_2D, specularMap);
 
@@ -599,10 +590,6 @@ void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffu
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
@@ -671,13 +658,6 @@ void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
-
-
-
 }
 
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos) {
@@ -705,10 +685,37 @@ void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset)
     camera.ProcessMouseScroll_Speed(yPosOffset);
 }
 
-void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_P && action == GLFW_PRESS)
+void toggles(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_P && action == GLFW_PRESS) {    //perspective
         perspectiveSwitch = !perspectiveSwitch;
+    }
+    if (key == GLFW_KEY_O && action == GLFW_PRESS) {    //render light bulbs
+        lightBulbs = !lightBulbs;
+    }
+    if (key == GLFW_KEY_1 && action == GLFW_PRESS) {    //default light color on/of
+        defaultLight = !defaultLight;
+        redLight = false;
+        greenLight = false;
+        blueLight = false;
+    }
+    if (key == GLFW_KEY_2 && action == GLFW_PRESS) {    //red lights on/off
+        defaultLight = false;
+        redLight = !redLight;
+        greenLight = false;
+        blueLight = false;
+    }
+    if (key == GLFW_KEY_3 && action == GLFW_PRESS) {    //green lights on/off
+        defaultLight = false;
+        redLight = false;
+        greenLight = !greenLight;
+        blueLight = false;
+    }
+    if (key == GLFW_KEY_4 && action == GLFW_PRESS) {    //blue lights on/off
+        defaultLight = false;
+        redLight = false;
+        greenLight = false;
+        blueLight = !blueLight;
+    }
 }
 
 void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
@@ -778,10 +785,6 @@ void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 
@@ -799,50 +802,6 @@ void flipImageVertically(unsigned char* image, int width, int height, int channe
             ++index2;
         }
     }
-}
-
-// creates the texture
-bool createTexture(const char* filename, GLuint& textureId) {
-
-    int width, height, channels;
-    unsigned char* image = stbi_load(filename, &width, &height, &channels, 0);
-    if (image) {
-
-        // flip the image on y-axis
-        flipImageVertically(image, width, height, channels);
-
-        // generate and bind texture
-        glGenTextures(1, &textureId);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-
-        // set the texture wrapping parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        // set texture filtering parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        // logic for handling 3 or 4 channel images
-        if (channels == 3) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-        } else if (channels == 4) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-        } else {
-            cout << "No support for images with " << channels << " channels" << endl;
-            return false;
-        }
-
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(image);
-
-        // unbind texture
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        return true;
-    }
-
-    return false;
 }
 
 // destroys texture
