@@ -12,86 +12,39 @@ using namespace std;
 class Sphere : public Mesh 
 {
 	public:
-        // ctor/dtor
-        //Sphere(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap, float radius = 1.0f, int sectorCount = 36, int stackCount = 18, bool smooth = false);
-        Sphere(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap, float radius = 0.8f, int sectorCount = 36, int stackCount = 36, bool smooth = false);
-        ~Sphere() {}
-
-        //getters/setters
-        float getRadius() const { return radius; }
-        int getSectorCount() const { return sectorCount; }
-        int getStackCount() const { return stackCount; }
-        void set(float radius, int sectorCount, int stackCount, bool smooth = true);
-        //void setRadius(float radius);
-        //void setSectorCount(int sectorCount);
-        //void setStackCount(int stackCount);
-        //void setSmooth(bool smooth);
-
-        // for vertex data
-        unsigned int getVertexCount() const { return (unsigned int)vertices.size() / 3; }
-        unsigned int getNormalCount() const { return (unsigned int)normals.size() / 3; }
-        unsigned int getTexCoordCount() const { return (unsigned int)texCoords.size() / 2; }
-        unsigned int getIndexCount() const { return (unsigned int)indices.size(); }
-        unsigned int getLineIndexCount() const { return (unsigned int)lineIndices.size(); }
-        unsigned int getTriangleCount() const { return getIndexCount() / 3; }
-        unsigned int getVertexSize() const { return (unsigned int)vertices.size() * sizeof(float); }
-        unsigned int getNormalSize() const { return (unsigned int)normals.size() * sizeof(float); }
-        unsigned int getTexCoordSize() const { return (unsigned int)texCoords.size() * sizeof(float); }
-        unsigned int getIndexSize() const { return (unsigned int)indices.size() * sizeof(unsigned int); }
-        unsigned int getLineIndexSize() const { return (unsigned int)lineIndices.size() * sizeof(unsigned int); }
-        const float* getVertices() const { return vertices.data(); }
-        const float* getNormals() const { return normals.data(); }
-        const float* getTexCoords() const { return texCoords.data(); }
-        const unsigned int* getIndices() const { return indices.data(); }
-        const unsigned int* getLineIndices() const { return lineIndices.data(); }
-
-        // for interleaved vertices: V/N/T
-        unsigned int getInterleavedVertexCount() const { return getVertexCount(); }    // # of vertices
-        unsigned int getInterleavedVertexSize() const { return (unsigned int)interleavedVertices.size() * sizeof(float); }    // # of bytes
-        int getInterleavedStride() const { return interleavedStride; }   // should be 32 bytes
-        const float* getInterleavedVertices() const { return interleavedVertices.data(); }
-
-
-        // draw in VertexArray mode
-        //void draw() const;                                  // draw surface
-        //void drawLines(const float lineColor[4]) const;     // draw lines only
-        //void drawWithLines(const float lineColor[4]) const; // draw surface and lines
-
-        // debug
-        /*void printSelf() const;*/
+        Sphere(Shader& litShdr, Shader& ltCUBEshdr, unsigned int difMap, unsigned int specMap, float radius = 0.8f, int sectorCount = 36, int stackCount = 36);
 
 	protected:
 
 	private:
-        // memeber vars
         float radius;
-        int sectorCount;                        // longitude, # of slices
-        int stackCount;                         // latitude, # of stacks
-        bool smooth;
+        int sectorCount;        //vertical slices                    
+        int stackCount;         //horizontal slices
+
+        //helper/builder vectors
         vector<GLfloat> vertices;
         vector<GLfloat> normals;
         vector<GLfloat> texCoords;
-        vector<unsigned int> indices;
-        vector<unsigned int> lineIndices;
 
-        // interleaved
-        vector<GLfloat> interleavedVertices;     // final vector of V, N, T info
-        int interleavedStride;
+        // final vector of V, N, T info
+        vector<GLfloat> interleavedVertices;     
+        int interleavedStride = 32;
 
-        // member functions
-        void buildVerticesSmooth();
+        void set(float radius, int sectorCount, int stackCount);
         void buildVerticesFlat();
         void buildInterleavedVertices();
         void clearArrays();
-        void addVertex(float x, float y, float z);
-        void addNormal(float x, float y, float z);
-        void addTexCoord(float s, float t);
-        void addIndices(unsigned int i1, unsigned int i2, unsigned int i3);
         vector<float> computeFaceNormal(float x1, float y1, float z1,
             float x2, float y2, float z2,
             float x3, float y3, float z3);
 
+        //helper functions for building helper vectors
+        void addVertex(float x, float y, float z);
+        void addNormal(float x, float y, float z);
+        void addTexCoord(float s, float t);
+
         void buildMesh(GLMesh& mesh, vector<GLfloat>& vertsVector);
+        
 };
 
 #endif
