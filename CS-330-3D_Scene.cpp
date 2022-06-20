@@ -25,6 +25,7 @@
 #include "Plane.h"
 #include "Lights.h"
 #include "Sphere.h"
+#include "Torus.h"
 
 
 using namespace std;
@@ -54,6 +55,7 @@ const char* const WINDOW_TITLE = "6-5 Milestone: Lighting Complex Objects";
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camBodyTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
+const char* tennisBallTexFile = "resources/textures/tennis_ball.png";
 const char* holderTexture = "resources/textures/brick_wall.jpg";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
@@ -79,6 +81,7 @@ void renderSpkrMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuse
 void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void renderCylinderMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
+void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
@@ -185,6 +188,8 @@ int main() {
     unsigned int planeSpecularMap = loadTexture(woodTextureFile);
     unsigned int holderDiffuseMap = loadTexture(holderTexture);
     unsigned int holderSpecularMap = loadTexture(holderTexture);
+    unsigned int tBallDiffuseMap = loadTexture(tennisBallTexFile);
+    unsigned int tBallSpecularMap = loadTexture(tennisBallTexFile);
 
     //NOTE: for debugging
     //unsigned int cameraBodyDiffuseMap = textureID2;
@@ -206,7 +211,8 @@ int main() {
     Cylinder cylinderMesh(lightingShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
     Plane planeMesh(lightingShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
     Cube speakerMesh(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
-    Sphere aSphere(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
+    Sphere aSphere(lightingShader, lightCubeShader, tBallDiffuseMap, tBallSpecularMap);
+    Torus aTorus(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
 
 
     /******* END OF CITED CODE **********************************************************/
@@ -245,7 +251,8 @@ int main() {
         renderCamMesh(cubeMesh.getShapeMesh(), lightingShader, cameraBodyDiffuseMap, cameraBodySpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader, cameraLensDiffuseMap, cameraLensSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderSpkrMesh(speakerMesh.getShapeMesh(), lightingShader, holderDiffuseMap, holderSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
-        renderSphereMesh(aSphere.getShapeMesh(), lightingShader, holderDiffuseMap, holderSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderSphereMesh(aSphere.getShapeMesh(), lightingShader, tBallDiffuseMap, tBallSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderTorusMesh(aTorus.getShapeMesh(), lightingShader, holderDiffuseMap, holderSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
@@ -390,7 +397,7 @@ void renderSpkrMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuse
     rotation = glm::rotate(rotation, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(3.5f, 0.0f, 0.5f));
+    glm::mat4 translation = glm::translate(glm::vec3(3.7f, 0.0f, 0.5f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = translation  * rotation * scale;
@@ -578,6 +585,78 @@ void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffu
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
+    //glActiveTexture(GL_TEXTURE1);
+    //glBindTexture(GL_TEXTURE_2D, specularMap);
+
+    // Draw the triangle.
+    glDrawArrays(GL_TRIANGLES, 0, mesh.nVertices); // Draws the triangle
+
+    // Deactivate the Vertex Array Object.
+    glBindVertexArray(0);
+    glUseProgram(0);
+
+    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
+    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
+    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
+}
+
+void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
+    // enable z-depth buffer
+    glEnable(GL_DEPTH_TEST);
+
+    // Activate the VBOs contained within the mesh's VAO.
+    glBindVertexArray(mesh.vao);
+
+    //////////// SHAPE DRAW FUNCTIONS ////////////
+    glUseProgram(lightShader.getID());
+
+    // 1. scales object
+    glm::mat4 scale = glm::scale(glm::vec3(2.5f, 2.5f, 1.5f));
+
+    // 2. rotates object 
+    glm::mat4 rotation = glm::mat4(1.0f);
+    // for no rotation, set radians to 0 and X, Y, and Z values to 1
+    rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
+
+    // 3. places object at origin
+    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.3f, -2.5f));
+
+    // Transformations are applied in right-to-left order.
+    glm::mat4 model = rotation * scale * translation;
+
+    // Transforms the camera: move the camera back (Z axis)
+    //glm::mat4 view = glm::translate(glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 view = camera.GetViewMatrix();
+
+    // Projection MAtrix
+    glm::mat4 projection;
+    if (perspectiveSwitch) {
+        projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    } else {
+        projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WINDOW_WIDTH / (GLfloat)WINDOW_HEIGHT, 0.1f, 100.0f);
+    }
+
+    // retrieves and passes transformation matrices to shader program
+    GLint modelLoc = glGetUniformLocation(lightShader.getID(), "model");
+    GLint viewLoc = glGetUniformLocation(lightShader.getID(), "view");
+    GLint projLoc = glGetUniformLocation(lightShader.getID(), "projection");
+
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    GLint UVScaleLoc = glGetUniformLocation(lightShader.getID(), "uvScale");
+    glUniform2fv(UVScaleLoc, 1, glm::value_ptr(gUVScale));
+
+
+    // wireframe mode
+    if (WIREFRAME_MODE == true) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
+    // bind textures on corresponding texture units
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, diffuseMap);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, specularMap);
 
@@ -591,6 +670,9 @@ void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffu
     //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
     //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
+
+
+
 }
 
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos) {
