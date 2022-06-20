@@ -38,13 +38,6 @@ using namespace std;
 
 
 // initialize mesh and shader program variables
-GLuint shapeProgramID;
-GLuint lampProgramID;
-GLuint shapeProgramID2;
-GLuint lampProgramID2;
-GLuint textureID1;
-GLuint textureID2;
-GLuint textureID3;
 glm::vec2 gUVScale(5.0f, 5.0f);
 GLint gTexWrapMode = GL_REPEAT;
 
@@ -52,7 +45,6 @@ GLint gTexWrapMode = GL_REPEAT;
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const char* const WINDOW_TITLE = "6-5 Milestone: Lighting Complex Objects";
-//TODO: will need to bind specular and diffuse texture for each texture used in the scene
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camBodyTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
@@ -84,7 +76,6 @@ void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
 void renderCylinderMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
 void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch);
-void destroyShaderProgram(GLuint programID);
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos);
 void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffset);
 void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset);
@@ -141,27 +132,6 @@ int main() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    // initialize AFTER glewExperimental to avoid error "Access violation.... 0X00000000"
-    //Cube cubeMesh;
-    //Cylinder cylinderMesh;
-    //Plane planeMesh;
-    
-    // Load texture
-    if (!createTexture(woodTextureFile, textureID1)) {
-        cout << "Failed to load texture " << woodTextureFile << endl;
-        return EXIT_FAILURE;
-    }
-    // Load texture
-    if (!createTexture(camBodyTextureFile, textureID2)) {
-        cout << "Failed to load texture " << camBodyTextureFile << endl;
-        return EXIT_FAILURE;
-    }
-    // Load texture
-    if (!createTexture(camLensTextureFile, textureID3)) {
-        cout << "Failed to load texture " << camLensTextureFile << endl;
-        return EXIT_FAILURE;
-    }
-
     /****** CODE CITATION **************************************************************
     * Title: Learn OpenGL: multiple_lights_exercise1.cpp
     * Author: Joey de Vries
@@ -179,9 +149,11 @@ int main() {
     };
     glm::vec3 spotLightPos(0.0f, 6.0f, 13.0f);
 
+    //create shaders
     Shader lightingShader("include/multiple_lights.vs", "include/multiple_lights.fs");
     Shader lightCubeShader("include/light_cube.vs", "include/light_cube.fs");
 
+    //load image maps
     unsigned int cameraBodyDiffuseMap = loadTexture(camBodyTextureFile);
     unsigned int cameraBodySpecularMap = loadTexture(camBodyTextureFile);
     unsigned int cameraLensDiffuseMap = loadTexture(camLensTextureFile);
@@ -195,37 +167,23 @@ int main() {
     unsigned int spkrDiffuseMap = loadTexture(spkrTexture);
     unsigned int spkrSpecularMap = loadTexture(spkrTexture);
 
-
-    //NOTE: for debugging
-    //unsigned int cameraBodyDiffuseMap = textureID2;
-    //unsigned int cameraBodySpecularMap = textureID2;
-    //unsigned int cameraLensDiffuseMap = textureID3;
-    //unsigned int cameraLensSpecularMap = textureID3;
-    //unsigned int planeDiffuseMap = textureID1;
-    //unsigned int planeSpecularMap = textureID1;
-    //unsigned int holderDiffuseMap = textureID1;
-    //unsigned int holderSpecularMap =textureID1;
-
+    //set diffuse and specular texture identifiers
     lightingShader.use();
     lightingShader.setInt("material.diffuse", 0);
     lightingShader.setInt("material.specular", 1);
 
+    /******* END OF CITED CODE **********************************************************/
+
+    //initialize lights
     Lights lights(lightingShader, lightCubeShader, camera, planeDiffuseMap, planeSpecularMap, pointLightPositions, spotLightPos);
 
+    //initialize and build shapes
     Cube cubeMesh(lightingShader, lightCubeShader, cameraBodyDiffuseMap, cameraBodySpecularMap);
     Cylinder cylinderMesh(lightingShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
     Plane planeMesh(lightingShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
     Speaker speakerMesh(lightingShader, lightCubeShader, spkrDiffuseMap, spkrSpecularMap);
     Sphere aSphere(lightingShader, lightCubeShader, tBallDiffuseMap, tBallSpecularMap);
     Torus aTorus(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
-
-
-    /******* END OF CITED CODE **********************************************************/
-
-
-    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-    // We set the texture as texture unit 0
-    //glUniform1i(glGetUniformLocation(shapeProgramID, "TEXTURE"), 0);
 
     // while loop to continually render until user closes window
     while (!glfwWindowShouldClose(window)) {
@@ -269,6 +227,9 @@ int main() {
     cylinderMesh.destoryMesh();
     cubeMesh.destoryMesh();
     planeMesh.destoryMesh();
+    speakerMesh.destoryMesh();
+    aTorus.destoryMesh();
+    aSphere.destoryMesh();
     glfwTerminate();
     return 0;
 }
