@@ -109,7 +109,7 @@ int main() {
     cout << "      Scroll Wheel - Adjust Movement Speed" << endl << endl;
 
     cout << "   PERSPECTIVE - " << endl;
-    cout << "      P - CHange Persective" << endl << endl;
+    cout << "      P - Change Persective" << endl << endl;
 
     cout << "   LIGHTS - " << endl;
     cout << "      O - Toggle Light Position Renders" << endl;
