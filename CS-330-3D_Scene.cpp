@@ -81,7 +81,6 @@ void scrollCameraMovement(GLFWwindow* window, double xPosOffset, double yPosOffs
 void scrollCameraSpeed(GLFWwindow* window, double xPosOffset, double yPosOffset);
 void perspectiveToggle(GLFWwindow* window, int key, int scancode, int action, int mods);
 void flipImageVertically(unsigned char* image, int width, int height, int channels);
-bool createTexture(const char* filename, GLuint& textureId);
 void destroyTexture(GLuint textureId);
 unsigned int loadTexture(char const* path);
 
@@ -337,10 +336,6 @@ void renderCamMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseM
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 void renderSpkrMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
@@ -411,10 +406,6 @@ void renderSpkrMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuse
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 //TODO: fix cylinder renderer
@@ -488,10 +479,6 @@ void renderCylinderMesh(const GLMesh& mesh, Shader lightShader, unsigned int dif
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
@@ -551,6 +538,8 @@ void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffu
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+    //tennis ball isn't reflective, so dont use specular mapping
     //glActiveTexture(GL_TEXTURE1);
     //glBindTexture(GL_TEXTURE_2D, specularMap);
 
@@ -560,10 +549,6 @@ void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffu
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuseMap, unsigned int specularMap, GLFWwindow* window, const bool WIREFRAME_MODE, bool perspectiveSwitch) {
@@ -632,13 +617,6 @@ void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
-
-
-
 }
 
 void mouseCameraMovement(GLFWwindow* window, double xPos, double yPos) {
@@ -739,10 +717,6 @@ void renderPlaneMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
     // Deactivate the Vertex Array Object.
     glBindVertexArray(0);
     glUseProgram(0);
-
-    //NOTE: put the glClear() and glfwSwapBuffers() function in the main() AROUND the multiple renders() to prevent flashing
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved, and so on).
-    //glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
 }
 
 
@@ -760,50 +734,6 @@ void flipImageVertically(unsigned char* image, int width, int height, int channe
             ++index2;
         }
     }
-}
-
-// creates the texture
-bool createTexture(const char* filename, GLuint& textureId) {
-
-    int width, height, channels;
-    unsigned char* image = stbi_load(filename, &width, &height, &channels, 0);
-    if (image) {
-
-        // flip the image on y-axis
-        flipImageVertically(image, width, height, channels);
-
-        // generate and bind texture
-        glGenTextures(1, &textureId);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-
-        // set the texture wrapping parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        // set texture filtering parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        // logic for handling 3 or 4 channel images
-        if (channels == 3) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-        } else if (channels == 4) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-        } else {
-            cout << "No support for images with " << channels << " channels" << endl;
-            return false;
-        }
-
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(image);
-
-        // unbind texture
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        return true;
-    }
-
-    return false;
 }
 
 // destroys texture
