@@ -260,11 +260,13 @@ void Sphere::buildVerticesSmooth() {
         for (int j = 0; j < sectorCount; ++j, ++k1, ++k2) {
             // 2 triangles per sector excluding 1st and last stacks
             if (i != 0) {
-                addIndices(k1, k2, k1 + 1);   // k1---k2---k1+1
+                //addIndices(k1, k2, k1 + 1);   // k1---k2---k1+1
+                addIndices(k1 + 1, k1, k2);
             }
 
             if (i != (stackCount - 1)) {
-                addIndices(k1 + 1, k2, k2 + 1); // k1+1---k2---k2+1
+                //addIndices(k1 + 1, k2, k2 + 1); // k1+1---k2---k2+1
+                addIndices(k2, k2 + 1, k1 + 1);
             }
 
             // vertical lines for all stacks
@@ -407,18 +409,22 @@ void Sphere::buildVerticesFlat() {
                 // put quad vertices: v1-v2-v3-v4
                 addVertex(v1.x, v1.y, v1.z);
                 addVertex(v2.x, v2.y, v2.z);
-                addVertex(v3.x, v3.y, v3.z);
                 addVertex(v4.x, v4.y, v4.z);
+                addVertex(v4.x, v4.y, v4.z);
+                addVertex(v3.x, v3.y, v3.z);
+                addVertex(v1.x, v1.y, v1.z);
 
                 // put tex coords of quad
                 addTexCoord(v1.s, v1.t);
                 addTexCoord(v2.s, v2.t);
-                addTexCoord(v3.s, v3.t);
                 addTexCoord(v4.s, v4.t);
+                addTexCoord(v4.s, v4.t);
+                addTexCoord(v3.s, v3.t);
+                addTexCoord(v1.s, v1.t);
 
                 // put normal
                 n = computeFaceNormal(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z);
-                for (k = 0; k < 4; ++k)  // same normals for 4 vertices
+                for (k = 0; k < 6; ++k)  // same normals for 4 vertices
                 {
                     addNormal(n[0], n[1], n[2]);
                 }
@@ -433,7 +439,7 @@ void Sphere::buildVerticesFlat() {
                 lineIndices.push_back(index);
                 lineIndices.push_back(index + 2);
 
-                index += 4;     // for next
+                index += 6;     // for next
             }
         }
     }
