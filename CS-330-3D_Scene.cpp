@@ -54,6 +54,7 @@ const char* const WINDOW_TITLE = "6-5 Milestone: Lighting Complex Objects";
 const char* woodTextureFile = "resources/textures/dark_wood.jpg";
 const char* camBodyTextureFile = "resources/textures/Full_camera.png";
 const char* camLensTextureFile = "resources/textures/Full_lens.png";
+const char* tennisBallTexFile = "resources/textures/tennis_ball.png";
 const char* holderTexture = "resources/textures/brick_wall.jpg";
 const bool WIREFRAME_MODE = false;
 float ROTATE_DEG = 0.0f;
@@ -185,6 +186,8 @@ int main() {
     unsigned int planeSpecularMap = loadTexture(woodTextureFile);
     unsigned int holderDiffuseMap = loadTexture(holderTexture);
     unsigned int holderSpecularMap = loadTexture(holderTexture);
+    unsigned int tBallDiffuseMap = loadTexture(tennisBallTexFile);
+    unsigned int tBallSpecularMap = loadTexture(tennisBallTexFile);
 
     //NOTE: for debugging
     //unsigned int cameraBodyDiffuseMap = textureID2;
@@ -206,7 +209,7 @@ int main() {
     Cylinder cylinderMesh(lightingShader, lightCubeShader, cameraLensDiffuseMap, cameraLensSpecularMap);
     Plane planeMesh(lightingShader, lightCubeShader, planeDiffuseMap, planeSpecularMap);
     Cube speakerMesh(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
-    Sphere aSphere(lightingShader, lightCubeShader, holderDiffuseMap, holderSpecularMap);
+    Sphere aSphere(lightingShader, lightCubeShader, tBallDiffuseMap, tBallSpecularMap);
 
 
     /******* END OF CITED CODE **********************************************************/
@@ -245,7 +248,7 @@ int main() {
         renderCamMesh(cubeMesh.getShapeMesh(), lightingShader, cameraBodyDiffuseMap, cameraBodySpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderCylinderMesh(cylinderMesh.getShapeMesh(), lightingShader, cameraLensDiffuseMap, cameraLensSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         renderSpkrMesh(speakerMesh.getShapeMesh(), lightingShader, holderDiffuseMap, holderSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
-        renderSphereMesh(aSphere.getShapeMesh(), lightingShader, holderDiffuseMap, holderSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
+        renderSphereMesh(aSphere.getShapeMesh(), lightingShader, tBallDiffuseMap, tBallSpecularMap, window, WIREFRAME_MODE, perspectiveSwitch);
         
 
         glfwSwapBuffers(window);    // Flips the the back buffer with the front buffer every frame
@@ -578,8 +581,8 @@ void renderSphereMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffu
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specularMap);
+    //glActiveTexture(GL_TEXTURE1);
+    //glBindTexture(GL_TEXTURE_2D, specularMap);
 
     // Draw the triangle.
     glDrawArrays(GL_TRIANGLES, 0, mesh.nVertices); // Draws the triangle
