@@ -397,7 +397,7 @@ void renderSpkrMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffuse
     rotation = glm::rotate(rotation, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(3.5f, 0.0f, 0.5f));
+    glm::mat4 translation = glm::translate(glm::vec3(3.7f, 0.0f, 0.5f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = translation  * rotation * scale;
@@ -611,7 +611,7 @@ void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
     glUseProgram(lightShader.getID());
 
     // 1. scales object
-    glm::mat4 scale = glm::scale(glm::vec3(1.5f, 1.5f, 1.5f));
+    glm::mat4 scale = glm::scale(glm::vec3(2.5f, 2.5f, 1.5f));
 
     // 2. rotates object 
     glm::mat4 rotation = glm::mat4(1.0f);
@@ -619,7 +619,7 @@ void renderTorusMesh(const GLMesh& mesh, Shader lightShader, unsigned int diffus
     rotation = glm::rotate(rotation, glm::radians(ROTATE_DEG), glm::vec3(ROTATE_X, ROTATE_Y, ROTATE_Z));
 
     // 3. places object at origin
-    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f));
+    glm::mat4 translation = glm::translate(glm::vec3(0.0f, 0.3f, -2.5f));
 
     // Transformations are applied in right-to-left order.
     glm::mat4 model = rotation * scale * translation;
