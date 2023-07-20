@@ -1,4 +1,6 @@
 # CS-330-3D_Scene
+
+## [Video of Final Project](https://youtu.be/GbA5X7XsMmI)
  
 ## • How do I approach designing software?
 For this class, I approached designing the software starting with analyzing the requirements for each week’s assignment/milestone. I looked at all the requirements first so that I had an idea of what needed to be done. From there, I used that knowledge along with the provided guides and class instruction to come up with possible ways to build out each feature/milestone. I also used paper + pencil to draw out shapes so I had a better idea of the different vertices and sides needed to make each object in my project.
